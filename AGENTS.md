@@ -1,19 +1,19 @@
-# AGENTS.md — operating manual for coding agents
+# AGENTS.md — how this repo is built
 
-Source of truth for anyone (human or AI) working on nutdb. Read it fully before
-making changes. If anything here conflicts with a note elsewhere, **this file
+The working agreement for this repository: anyone contributing to nutdb should
+read it fully before making changes. If anything here conflicts with a note elsewhere, **this file
 wins.**
 
 ---
 
-## 1. Roles
+## 1. How the work is organised
 
-- **Orchestrator** — plans milestones, defines Definitions of Done, reviews
+- **Planning** — plans milestones, defines Definitions of Done, reviews
   diffs, keeps the docs and safety claims honest.
-- **Builder** — implements one milestone at a time against `docs/milestones/`,
+- **Implementation** — proceed one milestone at a time against `docs/milestones/`,
   keeping the build clean and every test green.
 
-Builder loop: **pick the lowest-numbered unfinished milestone → implement →
+The loop: **pick the lowest-numbered unfinished milestone → implement →
 build clean → prove it with tests that try to break it → tick the Definition of
 Done → update docs/CHANGELOG → commit → next.**
 
