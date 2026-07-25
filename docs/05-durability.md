@@ -47,8 +47,10 @@ tested:
 | payload present but CRC mismatches | stop; mark truncated |
 
 In every case **the valid prefix is kept** and everything from the bad record on
-is discarded. `Recovery::valid_bytes` reports exactly where the good data ends —
-which is where a repair tool would truncate the file.
+is discarded. `Recovery::valid_bytes` reports exactly where the good data ends,
+and `Store::open` truncates the damaged tail there before accepting another
+write. Otherwise a later record could be acknowledged behind bytes replay must
+always stop at.
 
 Stopping at the *first* bad record (rather than skipping it and continuing) is
 deliberate: after a torn write, later bytes cannot be trusted to be record
@@ -77,11 +79,18 @@ record did not become visible.
   transactions into one flush — which is how real systems get throughput
   without weakening the guarantee.
 
+## Checkpoints
+
+Milestone 1 writes a complete checksummed page snapshot to a temporary file,
+syncs it, and publishes it before appending a checkpoint record and truncating
+the WAL. Thus a crash during snapshot creation leaves the previous snapshot and
+full WAL intact; a crash after publication can replay the still-present log
+idempotently; and a completed checkpoint starts replay from an empty WAL.
+
 ## Where this goes next
 
-- **M1**: the log stops being the whole database — it becomes the crash-recovery
-  journal in front of a paged B-tree, plus checkpointing so the log can be
-  truncated instead of growing forever.
+- **M1 (complete)**: the log is now the bounded crash-recovery journal in front
+  of a paged B-tree.
 - **M2**: log records carry transaction ids so recovery can roll back
   uncommitted work.
 - **M4**: the same log becomes the **Raft** replication log — which is why

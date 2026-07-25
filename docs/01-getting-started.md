@@ -41,12 +41,15 @@ durability verified: every committed write survived, the delete stuck
 cargo test
 ```
 
-10 crash-recovery tests plus unit tests. The interesting ones deliberately
-corrupt the log:
+The suite covers unit behavior, crash recovery, pages, B-tree splits,
+checkpoints, and 100,000-key reopen. The interesting cases deliberately corrupt
+or interrupt storage:
 
 - `torn_write_is_discarded_and_earlier_writes_survive`
 - `corrupted_payload_fails_its_checksum`
 - `truncated_header_is_handled`
+- `partial_checkpoint_record_recovers_from_the_synced_snapshot`
+- `appends_after_torn_tail_remain_replayable`
 
 ## Use the CLI
 
@@ -56,7 +59,8 @@ cargo run -- get user:1        # ada
 cargo run -- list
 ```
 
-Data lives in `data/nutdb.wal`. Delete it to start fresh.
+The WAL lives in `data/nutdb.wal`; a checkpoint snapshot uses
+`data/nutdb.wal.pages`. Delete both to start fresh.
 
 ## Inspect the on-disk format
 
@@ -73,6 +77,7 @@ you intended — see [docs/05](05-durability.md).
 
 - **`truncated: true` on open** — the log ended in a torn or corrupt record.
   That is the recovery path working: committed data before it is intact, and
-  `Recovery::valid_bytes` tells you where the good prefix ends.
+  `Recovery::valid_bytes` reports where the good prefix ended; the store also
+  repairs the file there before accepting another write.
 - **Permission errors** — the store creates `data/` relative to the working
   directory; run from the repo root.

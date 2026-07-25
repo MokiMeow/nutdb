@@ -35,6 +35,9 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/wal.rs` | append-only checksummed log; `append` / `sync` / `replay` |
 | `src/command.rs` | `Set`/`Delete` on-disk encoding, bounds-checked |
 | `src/store.rs` | the store: log → fsync → apply; `Recovery` reporting |
+| `src/page.rs` | checksummed 4 KiB slotted-page format |
+| `src/pager.rs` | fixed-page I/O and dirty LRU eviction |
+| `src/btree.rs` | handwritten B-tree, range scans, page snapshots |
 | `src/main.rs` | demo + small CLI |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
 
@@ -48,6 +51,9 @@ Getting its format and ordering right first is why milestone 0 came first.
    truncated, valid_bytes }` so callers (and tests) can assert on what happened.
 4. **Formats are explicit** — every on-disk layout is a documented byte diagram
    in the module that owns it.
+5. **Checkpoint publication is ordered** — sync the replacement page file,
+   publish it, sync the directory entry on Unix, then and only then truncate
+   the WAL it supersedes.
 
 ## Error handling
 
@@ -58,8 +64,8 @@ database that loses availability to a single bad byte.
 
 ## Concurrency (today and later)
 
-Milestone 0 is single-threaded and synchronous — the simplest thing that can be
-proven correct. Concurrency arrives with MVCC (M2), where readers take snapshots
+Milestones 0 and 1 are single-threaded and synchronous — the simplest design
+that can be proven correct. Concurrency arrives with MVCC (M2), where readers take snapshots
 and never block writers, and again with Raft (M4), where each node runs an
 election timer, a replication loop, and an apply loop.
 
