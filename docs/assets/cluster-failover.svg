@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-labelledby="title desc">
+  <title id="title">NutDB three-node leader failover demonstration</title>
+  <desc id="desc">Terminal transcript showing a follower pause, leader death, node two taking leadership, and acknowledged writes remaining readable.</desc>
+  <rect width="960" height="430" rx="16" fill="#0d1117"/>
+  <rect width="960" height="46" rx="16" fill="#161b22"/>
+  <rect y="30" width="960" height="16" fill="#161b22"/>
+  <circle cx="25" cy="23" r="7" fill="#ff5f56"/>
+  <circle cx="48" cy="23" r="7" fill="#ffbd2e"/>
+  <circle cx="71" cy="23" r="7" fill="#27c93f"/>
+  <text x="480" y="29" text-anchor="middle" fill="#8b949e" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="15">nutdb — fault-injection demo</text>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="18">
+    <text x="28" y="82" fill="#8b949e">$</text>
+    <text x="50" y="82" fill="#f0f6fc">bash scripts/cluster-demo.sh</text>
+    <text x="28" y="122" fill="#3fb950">[node1] leader</text>
+    <text x="28" y="150" fill="#8b949e">[node2] follower</text>
+    <text x="28" y="178" fill="#8b949e">[node3] follower</text>
+    <text x="28" y="216" fill="#58a6ff">ok</text>
+    <text x="28" y="254" fill="#d2a8ff">pausing node3</text>
+    <text x="28" y="282" fill="#58a6ff">ok</text>
+    <text x="28" y="320" fill="#f85149">killing node1</text>
+    <text x="28" y="348" fill="#3fb950">[node2] leader</text>
+    <text x="28" y="376" fill="#58a6ff">ok</text>
+    <text x="28" y="410" fill="#3fb950">✓ every acknowledged write is readable after leader failover</text>
+  </g>
+</svg>

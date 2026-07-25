@@ -10,8 +10,8 @@ including the tests that try to break it.
 | 2 | [MVCC](milestone-2-mvcc.md) | ✅ done |
 | 3 | [SQL](milestone-3-sql.md) | ✅ done |
 | 4 | [Raft](milestone-4-raft.md) | ✅ done |
-| 5 | [Cluster + fault injection](milestone-5-cluster.md) | ✅ |
-| 6 | [Polish](milestone-6-polish.md) | ⬜ |
+| 5 | [Cluster + fault injection](milestone-5-cluster.md) | ✅ done |
+| 6 | [Polish](milestone-6-polish.md) | ✅ done |
 
 ## Every milestone spec has
 

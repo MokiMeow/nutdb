@@ -81,7 +81,7 @@ Specs with Definitions of Done live in `docs/milestones/`.
 | 3 | SQL | lexer, parser, planner, executor | [spec](docs/milestones/milestone-3-sql.md) ✅ |
 | 4 | Raft | leader election, log replication | [spec](docs/milestones/milestone-4-raft.md) ✅ |
 | 5 | Cluster ✅ | 3 nodes, fault injection, linearizability | [spec](docs/milestones/milestone-5-cluster.md) |
-| 6 | Polish | benchmarks, CI, `v1.0.0` | [spec](docs/milestones/milestone-6-polish.md) |
+| 6 | Polish ✅ | benchmarks, CI, `v1.0.0` | [spec](docs/milestones/milestone-6-polish.md) |
 
 **Definition of Done (whole project):** a 3-node nutdb cluster serves SQL with
 snapshot-isolated transactions, elects a new leader when one is killed, loses no

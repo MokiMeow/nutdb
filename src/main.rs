@@ -39,6 +39,7 @@ fn main() -> ExitCode {
         },
         "serve" => serve(&args[1..]),
         "client" => cluster_client(&args[1..]),
+        "bench" => nutdb::bench::run(),
         other => usage(&format!("unknown command '{other}'")),
     };
 
@@ -255,7 +256,7 @@ fn usage(message: &str) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::InvalidInput,
         format!(
-            "usage: nutdb [demo | set/get/list | sql | serve | client --nodes ID=ADDR,... put/get/delete]  ({message})"
+            "usage: nutdb [demo | bench | set/get/list | sql | serve | client --nodes ID=ADDR,... put/get/delete]  ({message})"
         ),
     ))
 }

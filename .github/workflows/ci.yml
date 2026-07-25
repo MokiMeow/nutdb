@@ -10,18 +10,23 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rust
         run: sudo apt-get update && sudo apt-get install -y cargo rustc
 
       - name: Build (warnings are failures)
-        run: |
-          cargo build --release 2>&1 | tee build.log
-          ! grep -q "^warning" build.log
+        env:
+          RUSTFLAGS: -Dwarnings
+        run: cargo build --release
 
-      - name: Test (crash recovery + units)
+      - name: Full test suite
+        env:
+          RUSTFLAGS: -Dwarnings
         run: cargo test
 
-      - name: Durability demo
-        run: cargo run --release -- demo
+      - name: Three-process failover demo
+        run: bash scripts/cluster-demo.sh
+
+      - name: Benchmark smoke test
+        run: cargo run --release -- bench

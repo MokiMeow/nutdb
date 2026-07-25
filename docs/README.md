@@ -13,6 +13,7 @@
 - [06 — MVCC](06-mvcc.md)
 - [07 — Raft](07-raft.md)
 - [08 — SQL](08-sql.md)
+- [09 — Cluster testing](09-testing.md)
 - [10 — Glossary](10-glossary.md)
 
 ## Milestones
