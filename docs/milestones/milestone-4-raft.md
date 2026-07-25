@@ -1,68 +1,42 @@
-# Milestone 4 — Raft consensus
+# Milestone 4 — Raft consensus ✅
 
-**Goal:** replicate the log across nodes with leader election and log
-replication. This is the hardest milestone and the one almost nobody attempts.
+**Goal:** implement the Raft Figure 2 safety rules with persisted state and a
+transport that can manufacture network faults.
 
-## Concepts
+## What shipped
 
-Terms, leader election, log matching, commit index, and the safety properties
-that make consensus *correct* rather than merely working.
+- [x] Persisted `current_term`, `voted_for`, and complete log snapshots in the
+      checksummed WAL.
+- [x] Follower, candidate, and leader roles with deterministic randomized
+      150–300 ms election timeouts.
+- [x] RequestVote with one vote per term and last-term/last-index freshness.
+- [x] AppendEntries consistency checks, conflicting-suffix truncation,
+      heartbeats, and commit propagation.
+- [x] Majority commit restricted to entries from the leader's current term.
+- [x] Ordered exactly-once apply loop.
+- [x] A controllable in-memory transport that partitions, drops, delays, and
+      reorders messages, plus checked length-prefixed TCP frames.
+- [x] A deterministic cluster harness for election, replication, stopping,
+      partitions, healing, and convergence.
 
-## Tasks
+## Persistence boundary
 
-- [ ] **State**: `currentTerm`, `votedFor`, and the log **persisted before
-      responding to any RPC** — this is a Raft safety requirement, not an
-      optimisation. Reuse milestone 0's WAL.
-- [ ] **Roles**: follower / candidate / leader, with randomised election
-      timeouts (150–300 ms) to avoid split votes.
-- [ ] **RequestVote RPC**: grant a vote only if the candidate's log is at least
-      as up to date as ours (compare last term, then last index).
-- [ ] **AppendEntries RPC**: heartbeats plus replication; the consistency check
-      (`prevLogIndex`/`prevLogTerm`) and truncation of conflicting suffixes.
-- [ ] **Commit index**: advance only when a majority has replicated an entry
-      **from the current term** — the subtle rule that prevents committed
-      entries from being overwritten.
-- [ ] **Apply loop**: committed entries are applied to the state machine (the
-      store) in index order, exactly once.
-- [ ] **Transport**: TCP with a simple length-prefixed message format (no
-      dependencies). Tests use an in-memory transport that can drop, delay, and
-      reorder messages.
-- [ ] **Tests** on the in-memory transport: a leader is elected from 3 nodes;
-      exactly one leader per term; a partitioned old leader cannot commit; logs
-      converge after a partition heals; an entry committed by a majority is
-      never lost across leader changes.
-
-## Files
-
-`src/raft/mod.rs`, `src/raft/state.rs`, `src/raft/rpc.rs`,
-`src/raft/transport.rs`, `tests/raft.rs`, `docs/07-raft.md`.
+Term changes, granted votes, and log mutations append and synchronize a complete
+persistent-state record before a successful RPC response is returned. Tests
+drop and reopen a node immediately after the response and verify the vote/log
+is already present.
 
 ## Definition of Done
 
-- [ ] Three nodes elect exactly one leader, and re-elect within a bounded time
-      when the leader stops.
-- [ ] **Election safety**: a test asserts at most one leader per term across
-      many randomised runs.
-- [ ] **Log matching**: after a partition heals, all logs are identical at every
-      index they share.
-- [ ] **Leader completeness**: an entry acknowledged as committed is present in
-      every subsequent leader's log — tested across forced leader changes.
-- [ ] Persistent state is written **before** any RPC response (tested by
-      crashing between the two).
-- [ ] Build warning-free; all earlier tests green.
-
-## Notes
-
-Implement the rules *literally* from the paper's Figure 2 and cite it in the
-code. Raft's failure mode is that an approximate implementation passes casual
-testing and silently loses committed data under a specific partition. The
-in-memory transport with controllable message loss is what turns "seems to work"
-into evidence.
-
-## References
-
-- Ongaro & Ousterhout, *In Search of an Understandable Consensus Algorithm*
-  (the Raft paper) — especially Figure 2 and §5.4 safety.
-- <https://raft.github.io/> — visualisations.
+- [x] Three nodes elect exactly one leader and replace a stopped leader.
+- [x] Thirty-two seeded runs assert at most one leader per term.
+- [x] A stale candidate cannot win a vote from a node containing a
+      majority-committed entry.
+- [x] A minority old leader cannot commit.
+- [x] Conflicting logs converge after partition healing.
+- [x] Current-term-only commit advancement is tested directly.
+- [x] Persist-before-response is verified for votes and appended entries.
+- [x] Apply order is exact and repeated heartbeats do not reapply commands.
+- [x] Linux release build is warning-free and all earlier suites remain green.
 
 **Next:** [Milestone 5 — Cluster](milestone-5-cluster.md).

@@ -7,6 +7,14 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Milestone 4: persisted Raft terms/votes/logs, randomized elections,
+  RequestVote freshness, AppendEntries log matching and suffix repair,
+  current-term majority commit, ordered exactly-once apply, an in-memory fault
+  transport, checked TCP framing, and a deterministic cluster harness.
+- Ten Raft tests covering seeded election safety, re-election, stale
+  candidates, minority leaders, leader completeness, partition convergence,
+  persist-before-response, current-term commit, apply idempotence, and
+  transport behavior.
 - Milestone 3: a positioned SQL lexer, recursive-descent parser, persisted
   catalog and typed rows, rule planner, pull executor, primary-key index
   lookup, three-valued `NULL` logic, SQL transactions, and CLI execution.

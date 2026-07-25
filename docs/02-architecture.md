@@ -43,6 +43,7 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/gc.rs` | watermark/reclamation reporting |
 | `src/catalog.rs` | persisted schemas and typed row encoding |
 | `src/sql/` | lexer, AST/parser, physical planner, pull executor |
+| `src/raft/` | persistent Raft state, RPCs, transports, simulation cluster |
 | `src/main.rs` | demo + small CLI |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
 

@@ -21,6 +21,7 @@ pub mod crc;
 pub mod gc;
 pub mod page;
 pub mod pager;
+pub mod raft;
 pub mod store;
 pub mod sql;
 pub mod txn;

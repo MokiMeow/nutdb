@@ -1,71 +1,46 @@
 # 07 — Raft
 
-*Milestones 4–5.* Replicating the log so a cluster survives losing a node —
-without ever losing an acknowledged write.
+The implementation follows the state and receiver rules in Figure 2 of the Raft
+paper.
 
-## The problem
+## Persistent state
 
-One node means one disk and one power supply. Replication means several nodes
-must agree on **the same log in the same order**, even while nodes crash and the
-network drops, delays, duplicates, and reorders messages. Consensus is what
-makes that agreement safe.
+Every node persists its term, vote, and log through the checksummed WAL. A vote
+grant or successful append response is not returned until the new state has
+been synchronized. A restart replays the last complete state record and repairs
+any torn tail.
 
-## Roles and terms
+## Elections
 
-Every node is a **follower**, **candidate**, or **leader**. Time is divided into
-**terms**, each with at most one leader.
+Election timeouts are randomized in the 150–300 ms interval from a reproducible
+seed. A candidate increments and persists its term, votes for itself, then asks
+peers. A follower grants at most one vote per term and only when the candidate's
+last `(term, index)` is at least as new as its own.
 
-```
-follower ──(election timeout)──▶ candidate ──(majority votes)──▶ leader
-   ▲                                 │                              │
-   └────(sees a higher term)─────────┴──────────────────────────────┘
-```
+## Replication
 
-Randomised election timeouts (150–300 ms) prevent split votes from repeating.
+AppendEntries checks `prev_log_index` and `prev_log_term`. A mismatch rejects
+the request. A conflicting entry deletes that entry and its suffix before the
+leader's suffix is appended. Commit propagation uses
+`min(leader_commit, last_log_index)`.
 
-## The safety rules that actually matter
+Leaders advance commit only when a majority match an index whose entry belongs
+to the leader's current term. This subtle rule is what preserves leader
+completeness across term changes.
 
-An approximate Raft passes casual testing and loses data under a specific
-partition. These are the rules that prevent it:
+## Apply
 
-1. **Persist before responding.** `currentTerm`, `votedFor`, and the log must be
-   on durable storage *before* replying to any RPC. This is where milestone 0's
-   WAL earns its place.
-2. **Election restriction.** Grant a vote only if the candidate's log is at
-   least as up to date as yours (compare last log term, then last index). This
-   is what guarantees a new leader has every committed entry.
-3. **Log matching.** `AppendEntries` carries `prevLogIndex`/`prevLogTerm`; a
-   follower rejects if they do not match, and the leader walks back until they
-   do, then truncates the follower's conflicting suffix.
-4. **Commit only current-term entries by counting.** A leader may only advance
-   the commit index for an entry from **its own term**; earlier-term entries
-   become committed indirectly. Skipping this rule is the subtle bug that lets a
-   committed entry be overwritten.
+`commit_index` and `last_applied` are distinct. The apply loop walks each newly
+committed entry in index order and advances `last_applied`; repeated heartbeats
+therefore cannot apply the same command twice.
 
-## Client interaction
+## Testing
 
-- Writes go to the leader; followers redirect.
-- An entry is acknowledged only after a majority has replicated it.
-- **A timeout is not a failure.** The write may have committed. Clients retry
-  idempotently, and the fault-injection checker (M5) records such operations as
-  indeterminate — treating them as failed produces phantom violations.
+The deterministic in-memory network can isolate nodes and drop/reorder queued
+messages. Safety tests cover election safety, stale candidates, minority
+leaders, suffix repair, current-term commit, persistence boundaries, and
+exactly-once apply. TCP transport uses a big-endian 32-bit length prefix with a
+16 MiB limit.
 
-## Testing it properly
-
-Real networks are not needed to find real bugs. Milestone 4 uses an **in-memory
-transport that can drop, delay, and reorder messages**, so tests are
-deterministic and fast, and asserts the safety properties directly:
-
-- at most one leader per term (across many randomised runs),
-- logs identical at every shared index after a partition heals,
-- an acknowledged entry present in every subsequent leader's log.
-
-Milestone 5 then does it for real: three processes, `kill -9` the leader
-mid-workload, and check linearizability of the recorded history.
-
-## References
-
-- Ongaro & Ousterhout, *In Search of an Understandable Consensus Algorithm* —
-  implement Figure 2 literally and cite it in the code.
-- <https://raft.github.io/> — visualisations.
-- Jepsen — the model for milestone 5's fault injection.
+Reference: Ongaro and Ousterhout, *In Search of an Understandable Consensus
+Algorithm*, especially Figure 2 and section 5.4.
