@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: sudo apt-get update && sudo apt-get install -y cargo rustc
+
+      - name: Build (warnings are failures)
+        run: |
+          cargo build --release 2>&1 | tee build.log
+          ! grep -q "^warning" build.log
+
+      - name: Test (crash recovery + units)
+        run: cargo test
+
+      - name: Durability demo
+        run: cargo run --release -- demo
