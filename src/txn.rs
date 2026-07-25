@@ -244,6 +244,32 @@ impl Transaction {
         self.store.get_at(key, self.snapshot).map_err(TxnError::Io)
     }
 
+    pub fn scan_prefix(&self, prefix: &str) -> Result<Vec<(String, String)>, TxnError> {
+        self.ensure_open()?;
+        let inner = self.store.lock()?;
+        let mut rows = BTreeMap::new();
+        for key in inner.versions.keys().filter(|key| key.starts_with(prefix)) {
+            if let Some(value) = visible_value(&inner.versions, key, self.snapshot) {
+                rows.insert(key.clone(), value);
+            }
+        }
+        drop(inner);
+        for (key, value) in self.writes.range(prefix.to_owned()..) {
+            if !key.starts_with(prefix) {
+                break;
+            }
+            match value {
+                Some(value) => {
+                    rows.insert(key.clone(), value.clone());
+                }
+                None => {
+                    rows.remove(key);
+                }
+            }
+        }
+        Ok(rows.into_iter().collect())
+    }
+
     pub fn set(
         &mut self,
         key: impl Into<String>,
