@@ -1,0 +1,13 @@
+[package]
+name = "nutdb"
+version = "0.1.0"
+edition = "2021"
+description = "A distributed SQL database built from the durability layer up"
+license = "MIT"
+
+# No dependencies, on purpose: the WAL, the checksums, the storage engine, the
+# SQL layer and the consensus protocol are the project. See docs/decisions/.
+[dependencies]
+
+[profile.release]
+opt-level = 3

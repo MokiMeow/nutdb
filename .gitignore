@@ -1,0 +1,23 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# Database files — never commit data
+/data/
+*.wal
+*.db
+
+# Temp / logs
+*.log
+*.out
+verify.sh
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local build-agent scaffolding, not part of the project
+PROMPTS.md
