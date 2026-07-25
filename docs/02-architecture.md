@@ -38,6 +38,9 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/page.rs` | checksummed 4 KiB slotted-page format |
 | `src/pager.rs` | fixed-page I/O and dirty LRU eviction |
 | `src/btree.rs` | handwritten B-tree, range scans, page snapshots |
+| `src/txn.rs` | durable transaction log, snapshots, commits, conflicts |
+| `src/version.rs` | version visibility and modification timestamps |
+| `src/gc.rs` | watermark/reclamation reporting |
 | `src/main.rs` | demo + small CLI |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
 

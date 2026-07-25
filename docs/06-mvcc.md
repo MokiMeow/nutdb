@@ -1,67 +1,64 @@
 # 06 — MVCC
 
-*Milestone 2.* Multi-version concurrency control: readers see a consistent
-snapshot without blocking writers, and writers never block readers.
+nutdb implements snapshot isolation with durable transaction boundaries and
+first-committer-wins conflicts.
 
-## The idea
+## Identity versus time
 
-Never overwrite a row. Every write creates a **new version** tagged with the
-transaction that created it:
+Two counters have different jobs:
 
-```
-key "balance"
-   ├─ version A: 100   created_txn=5   deleted_txn=9
-   └─ version B: 150   created_txn=9   deleted_txn=None   ← current
-```
+- A transaction ID identifies one attempt and is persisted before `begin`
+  returns, so it cannot repeat after restart.
+- A commit timestamp is assigned while committing under the store lock and
+  defines visibility.
 
-A transaction with snapshot `t` sees the version where
-`created_txn <= t` and (`deleted_txn` is none or `deleted_txn > t`).
+They must be separate. Transaction 1 can commit after transaction 2; a snapshot
+opened between those commits must not see transaction 1 merely because its ID
+is numerically smaller.
 
-Because old versions still exist, a long-running read never blocks and never
-sees a half-applied write.
+## Visibility
 
-## Snapshot isolation — and its limit
-
-Each transaction takes a snapshot at start and reads consistently from it.
-Write-write conflicts are resolved **first-committer-wins**: the second
-transaction to commit a conflicting key aborts.
-
-**This is not serializability.** Snapshot isolation permits *write skew*: two
-transactions read overlapping data, write disjoint keys, and both commit —
-producing a state no serial order could. The classic example is two on-call
-doctors each checking "is someone else on duty?", seeing yes, and both going
-off duty.
-
-nutdb documents this honestly rather than claiming serializability. Upgrading to
-SSI (serializable snapshot isolation) by tracking read-write dependencies is a
-documented stretch goal.
-
-## Garbage collection
-
-Old versions accumulate. Track a **watermark** — the oldest snapshot any live
-transaction is using — and reclaim versions no live transaction can see:
+A version is visible at snapshot `s` when:
 
 ```
-reclaimable  ⟺  deleted_txn is set AND deleted_txn < watermark
+created_at <= s && (deleted_at is absent || deleted_at > s)
 ```
 
-The failure mode to test: a long-running transaction holds the watermark back,
-and GC must **not** reclaim a version it can still see. That test is the
-milestone's real Definition of Done.
+Writes create versions rather than overwriting values. Deletes timestamp the
+current version. A transaction consults its private write set first, which gives
+read-your-own-writes without exposing uncommitted data to anyone else.
 
-## Recovery interaction
+## Conflicts
 
-Transaction boundaries go in the log. Recovery must:
+At commit, every written key is checked for a modification after the
+transaction's snapshot. If one exists, the transaction writes a durable abort
+record and returns `TxnError::Conflict`; otherwise all its earlier write records
+become visible through one synchronized commit record.
 
-1. replay committed transactions, and
-2. **discard** work from transactions with no commit record.
+This is first-committer-wins. It prevents lost updates on the same key.
 
-Test it by crashing between the writes and the commit record — the partial
-transaction must leave no trace.
+## Crash recovery
 
-## References
+Recovery buffers `Set` and `Delete` records by transaction ID. It applies a
+buffer only when a valid `Commit` follows. An incomplete record is removed by
+the WAL repair path; a complete write batch with no commit is ignored. Thus a
+crash immediately before the commit record has no partial effect, while a crash
+immediately after its `fsync` recovers the complete transaction.
 
-- Berenson et al., *A Critique of ANSI SQL Isolation Levels* (defines snapshot
-  isolation and write skew)
-- Fekete et al., *Making Snapshot Isolation Serializable* (the SSI path)
-- [docs/05 — Durability](05-durability.md)
+## Watermark and GC
+
+The watermark is the oldest snapshot among active transactions. A version whose
+deletion timestamp is older than that watermark cannot be seen by any live or
+future transaction and can be reclaimed. Tests hold an old reader open, run GC,
+verify its version survives, close it, and verify a later GC reclaims it.
+
+## Guarantee and limitation
+
+Snapshot isolation supplies stable transaction snapshots, no dirty reads, no
+non-repeatable reads, no phantoms within a snapshot, and same-key write conflict
+detection. It is not serializable: write skew remains possible when concurrent
+transactions read overlapping data and update disjoint keys. Serializable
+snapshot isolation is a future extension.
+
+References: Berenson et al., *A Critique of ANSI SQL Isolation Levels*; Fekete
+et al., *Making Snapshot Isolation Serializable*.
