@@ -44,7 +44,10 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/catalog.rs` | persisted schemas and typed row encoding |
 | `src/sql/` | lexer, AST/parser, physical planner, pull executor |
 | `src/raft/` | persistent Raft state, RPCs, transports, simulation cluster |
-| `src/main.rs` | demo + small CLI |
+| `src/server.rs` | durable TCP node, majority fencing, replication, catch-up |
+| `src/client.rs` | redirect-following bounded-retry cluster client |
+| `src/linearizability.rs` | real-time register-history verifier |
+| `src/main.rs` | demos, standalone CLI, server, and cluster client |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
 
 ## Invariants
@@ -76,3 +79,17 @@ and never block writers, and again with Raft (M4), where each node runs an
 election timer, a replication loop, and an apply loop.
 
 See the [roadmap](04-roadmap.md) and the [milestones](milestones/).
+
+## Cluster integration boundary
+
+The milestone 4 Raft implementation owns consensus invariants and is exercised
+through deterministic transports. The milestone 5 TCP service is a separate
+integration layer: the lowest reachable node leads a component, minorities
+refuse writes, mutations are durably staged, and success is returned only
+after majority commit. Catch-up merges committed versions after healing or
+restart.
+
+This split makes both pieces testable, but it is also a deliberate limitation:
+the live TCP service does not yet exchange Raft RPCs. It therefore demonstrates
+the specified crash-stop and partition behavior without claiming to be the
+production networking frontend for the Raft state machine.
