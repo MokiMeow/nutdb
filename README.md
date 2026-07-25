@@ -108,7 +108,7 @@ SQL database is in [docs/04-roadmap.md](docs/04-roadmap.md).
 | 1 | Pages, B-tree, and a real on-disk store | ✅ done |
 | 2 | MVCC transactions + snapshot isolation | ✅ done |
 | 3 | SQL: parser → planner → executor | ✅ done |
-| 4 | Raft: leader election + log replication | ⬜ |
+| 4 | Raft: leader election + log replication | ✅ done |
 | 5 | 3-node cluster + Jepsen-style fault injection | ⬜ |
 | 6 | Benchmarks, CI, `v1.0.0` | ⬜ |
 
