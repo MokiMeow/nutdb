@@ -16,6 +16,7 @@
 
 pub mod command;
 pub mod btree;
+pub mod bench;
 pub mod catalog;
 pub mod client;
 pub mod crc;
