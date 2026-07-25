@@ -7,6 +7,12 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Milestone 2: snapshot-isolated transactions, persisted transaction IDs,
+  commit-order timestamps, versioned values/deletes, first-committer-wins
+  conflicts, commit/abort recovery, active-snapshot watermarks, and MVCC GC.
+- MVCC tests for concurrent conflicts, stable snapshots/no phantoms,
+  logged-but-uncommitted crash recovery, commit-order visibility, deletes,
+  aborts, and GC safety with a live old reader.
 - Milestone 1: checksummed 4 KiB slotted pages, an LRU pager, a handwritten
   multi-level B-tree, ordered range scans, durable page snapshots,
   checkpoint/WAL truncation, and batched group commit.

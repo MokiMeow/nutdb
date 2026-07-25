@@ -1,53 +1,59 @@
-# Milestone 2 — MVCC and transactions
+# Milestone 2 — MVCC and transactions ✅
 
-**Goal:** concurrent transactions that read a consistent snapshot without
-blocking writers — the feature that separates a key-value store from a database.
+**Goal:** concurrent transactions read stable snapshots without blocking
+writers, while same-key writers use first-committer-wins conflict handling.
 
-## Concepts
+## What shipped
 
-Multi-version concurrency control, snapshot isolation, transaction ids and
-watermarks, garbage collection of dead versions, and write-write conflicts.
+- [x] Transaction IDs persisted in a synchronized `Begin` record before begin
+      succeeds. Recovery advances past every observed ID, including abandoned
+      transactions.
+- [x] A separate monotonically increasing commit timestamp. Visibility follows
+      commit order, not transaction allocation order.
+- [x] Version chains carrying `created_at` and `deleted_at` timestamps.
+- [x] Snapshot reads plus read-your-own-writes.
+- [x] First-committer-wins write conflicts. A key changed after a transaction's
+      snapshot causes that transaction to abort.
+- [x] Logged write records followed by a durable commit/abort record. Recovery
+      buffers writes and applies only batches with an intact commit.
+- [x] Active-snapshot watermark and garbage collection of versions no live
+      transaction can observe.
+- [x] Thread-safe `MvccStore` / `Transaction` APIs using only `std`.
 
-## Tasks
+## WAL format
 
-- [ ] **Transaction ids**: a monotonically increasing counter, persisted so ids
-      never repeat after a restart.
-- [ ] **Versioned rows**: each value carries `(created_txn, deleted_txn)`. A
-      write creates a new version rather than overwriting.
-- [ ] **Snapshot reads**: a transaction sees versions created before its
-      snapshot and not deleted before it — no locks, no blocking.
-- [ ] **Write-write conflicts**: two concurrent transactions writing the same
-      key — the second to commit aborts (first-committer-wins).
-- [ ] **Commit/abort**: log a commit record; recovery must roll back
-      transactions with no commit record.
-- [ ] **Watermark + GC**: track the oldest active snapshot and reclaim versions
-      no live transaction can see.
-- [ ] **Tests**: a reader sees a consistent snapshot while a writer commits
-      concurrently; a write-write conflict aborts exactly one side; recovery
-      discards uncommitted work; GC does not reclaim a version a live
-      transaction still needs.
+The MVCC store uses the checksummed WAL framing from milestone 0:
 
-## Files
+```
+Begin:  [0x10][txn:u64][snapshot:u64]
+Set:    [0x11][txn:u64][klen:u32][key][vlen:u32][value]
+Delete: [0x12][txn:u64][klen:u32][key]
+Commit: [0x13][txn:u64][commit_ts:u64]
+Abort:  [0x14][txn:u64]
+```
 
-`src/txn.rs`, `src/version.rs`, `src/gc.rs`, `src/store.rs` (versioned),
-`tests/mvcc.rs`, `docs/06-mvcc.md`.
+Writes may reach the log before commit. That is safe because recovery keeps
+them pending until an intact commit record appears.
 
 ## Definition of Done
 
-- [ ] A long-running reader observes a stable snapshot while writes commit
-      around it (no phantom reads within the snapshot).
-- [ ] Concurrent writers to the same key: exactly one commits, the other gets a
-      conflict error.
-- [ ] A crash mid-transaction leaves **no** partial effects after recovery —
-      tested by killing between the writes and the commit record.
-- [ ] GC reclaims versions and a test proves it never reclaims a visible one.
-- [ ] Build warning-free; all earlier tests still green.
+- [x] A long-running reader sees its original value and no newly inserted
+      phantom while another transaction commits.
+- [x] Two overlapping writers to one key produce exactly one commit and one
+      conflict.
+- [x] A crash after write records but before commit leaves no partial effects.
+- [x] Transaction IDs are not reused after that crash.
+- [x] A test proves snapshots follow commit order when an older transaction
+      commits late.
+- [x] GC preserves a version held by a live reader and reclaims it after that
+      reader ends.
+- [x] Deletes and aborts have version-correct behavior.
+- [x] Linux release build is warning-free and every earlier test remains green.
 
-## Notes
+## Isolation guarantee
 
-Snapshot isolation does **not** prevent write skew. Say so explicitly in the
-docs rather than implying serializability; upgrading to SSI (serializable
-snapshot isolation) is a documented stretch goal. Overclaiming an isolation
-level is the most common way database projects mislead.
+This is snapshot isolation, not serializability. It prevents dirty reads,
+non-repeatable reads, phantoms within a transaction snapshot, and same-key lost
+updates. It permits write skew across disjoint keys.
 
 **Next:** [Milestone 3 — SQL](milestone-3-sql.md).

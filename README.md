@@ -105,7 +105,7 @@ SQL database is in [docs/04-roadmap.md](docs/04-roadmap.md).
 |---|-----------|-------|
 | 0 | WAL + crash recovery | ✅ done |
 | 1 | Pages, B-tree, and a real on-disk store | ✅ done |
-| 2 | MVCC transactions + snapshot isolation | ⬜ |
+| 2 | MVCC transactions + snapshot isolation | ✅ done |
 | 3 | SQL: parser → planner → executor | ⬜ |
 | 4 | Raft: leader election + log replication | ⬜ |
 | 5 | 3-node cluster + Jepsen-style fault injection | ⬜ |

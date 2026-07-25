@@ -17,12 +17,16 @@
 pub mod command;
 pub mod btree;
 pub mod crc;
+pub mod gc;
 pub mod page;
 pub mod pager;
 pub mod store;
+pub mod txn;
+pub mod version;
 pub mod wal;
 
 pub use command::Command;
 pub use btree::BTreeIndex;
 pub use store::{Recovery, Store};
+pub use txn::{MvccStore, Transaction, TxnError};
 pub use wal::{ReplayResult, Wal};
