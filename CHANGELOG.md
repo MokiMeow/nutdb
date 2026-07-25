@@ -7,6 +7,12 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Milestone 3: a positioned SQL lexer, recursive-descent parser, persisted
+  catalog and typed rows, rule planner, pull executor, primary-key index
+  lookup, three-valued `NULL` logic, SQL transactions, and CLI execution.
+- End-to-end SQL tests for persistence, projection/filter/order/limit,
+  update/delete, commit/rollback, plan choice, positional errors, type checks,
+  uniqueness, and explicit `NULL` truth tables.
 - Milestone 2: snapshot-isolated transactions, persisted transaction IDs,
   commit-order timestamps, versioned values/deletes, first-committer-wins
   conflicts, commit/abort recovery, active-snapshot watermarks, and MVCC GC.

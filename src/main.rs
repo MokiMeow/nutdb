@@ -4,11 +4,12 @@
 //!   cargo run -- set k v       set a key in data/nutdb.wal
 //!   cargo run -- get k         read a key back
 //!   cargo run -- list          show every key
+//!   cargo run -- sql "..."     execute SQL against data/nutdb.sql.wal
 
 use std::io;
 use std::process::ExitCode;
 
-use nutdb::Store;
+use nutdb::{SqlEngine, SqlResult, Store};
 
 const DEFAULT_PATH: &str = "data/nutdb.wal";
 
@@ -27,6 +28,10 @@ fn main() -> ExitCode {
             None => usage("get <key>"),
         },
         "list" => list(),
+        "sql" => match args.get(1) {
+            Some(source) => sql(source),
+            None => usage("sql <statement(s)>"),
+        },
         other => usage(&format!("unknown command '{other}'")),
     };
 
@@ -124,9 +129,37 @@ fn list() -> io::Result<()> {
     Ok(())
 }
 
+fn sql(source: &str) -> io::Result<()> {
+    let mut engine = SqlEngine::open("data/nutdb.sql.wal")?;
+    for result in engine.execute(source)? {
+        match result {
+            SqlResult::Affected(count) => println!("{count} row(s) affected"),
+            SqlResult::Rows { columns, rows } => {
+                println!("{}", columns.join(" | "));
+                for row in rows {
+                    println!(
+                        "{}",
+                        row.iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<_>>()
+                            .join(" | ")
+                    );
+                }
+            }
+            SqlResult::Begun => println!("BEGIN"),
+            SqlResult::Committed => println!("COMMIT"),
+            SqlResult::RolledBack => println!("ROLLBACK"),
+            SqlResult::Explain(plan) => println!("{plan}"),
+        }
+    }
+    Ok(())
+}
+
 fn usage(message: &str) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::InvalidInput,
-        format!("usage: nutdb [demo | set <k> <v> | get <k> | list]  ({message})"),
+        format!(
+            "usage: nutdb [demo | set <k> <v> | get <k> | list | sql <statement(s)>]  ({message})"
+        ),
     ))
 }

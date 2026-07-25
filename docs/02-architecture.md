@@ -41,6 +41,8 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/txn.rs` | durable transaction log, snapshots, commits, conflicts |
 | `src/version.rs` | version visibility and modification timestamps |
 | `src/gc.rs` | watermark/reclamation reporting |
+| `src/catalog.rs` | persisted schemas and typed row encoding |
+| `src/sql/` | lexer, AST/parser, physical planner, pull executor |
 | `src/main.rs` | demo + small CLI |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
 

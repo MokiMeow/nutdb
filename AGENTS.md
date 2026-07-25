@@ -78,7 +78,7 @@ Specs with Definitions of Done live in `docs/milestones/`.
 | 0 | Durability | CRC'd WAL, crash recovery, KV store | [spec](docs/milestones/milestone-0-durability.md) ✅ |
 | 1 | Storage engine | pages, B-tree, on-disk store, checkpointing | [spec](docs/milestones/milestone-1-storage.md) ✅ |
 | 2 | MVCC | versioned rows, snapshot isolation, GC | [spec](docs/milestones/milestone-2-mvcc.md) ✅ |
-| 3 | SQL | lexer, parser, planner, executor | [spec](docs/milestones/milestone-3-sql.md) |
+| 3 | SQL | lexer, parser, planner, executor | [spec](docs/milestones/milestone-3-sql.md) ✅ |
 | 4 | Raft | leader election, log replication | [spec](docs/milestones/milestone-4-raft.md) |
 | 5 | Cluster | 3 nodes, fault injection, linearizability | [spec](docs/milestones/milestone-5-cluster.md) |
 | 6 | Polish | benchmarks, CI, `v1.0.0` | [spec](docs/milestones/milestone-6-polish.md) |
