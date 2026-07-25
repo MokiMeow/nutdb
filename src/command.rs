@@ -4,7 +4,8 @@
 //!
 //! ```text
 //! Set:    [0x01][klen: u32][key][vlen: u32][value]
-//! Delete: [0x02][klen: u32][key]
+//! Delete:     [0x02][klen: u32][key]
+//! Checkpoint: [0x03]
 //! ```
 //!
 //! Deliberately explicit rather than using a serialisation crate — the on-disk
@@ -15,11 +16,13 @@ use std::io;
 
 const TAG_SET: u8 = 0x01;
 const TAG_DELETE: u8 = 0x02;
+const TAG_CHECKPOINT: u8 = 0x03;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
     Set { key: String, value: String },
     Delete { key: String },
+    Checkpoint,
 }
 
 impl Command {
@@ -35,6 +38,7 @@ impl Command {
                 out.push(TAG_DELETE);
                 push_bytes(&mut out, key.as_bytes());
             }
+            Command::Checkpoint => out.push(TAG_CHECKPOINT),
         }
         out
     }
@@ -50,6 +54,7 @@ impl Command {
             TAG_DELETE => Command::Delete {
                 key: cursor.take_string()?,
             },
+            TAG_CHECKPOINT => Command::Checkpoint,
             other => {
                 return Err(invalid(format!("unknown command tag {other:#04x}")));
             }
