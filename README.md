@@ -93,14 +93,16 @@ cargo run -- set user:1 ada     # persist a key
 cargo run -- get user:1         # read it back
 cargo run -- list               # everything stored
 cargo run -- sql "SELECT * FROM users WHERE id = 1;"
+bash scripts/cluster-demo.sh      # three processes, pause + leader failover
 ```
 
 Needs only a Rust toolchain — there are no dependencies at all.
 
 ## Status
 
-Milestones 0 and 1 (durability and storage) are **done and tested**. The road to a replicated
-SQL database is in [docs/04-roadmap.md](docs/04-roadmap.md).
+Milestones 0 through 5 are **done and tested**. The road and evidence are in
+[docs/04-roadmap.md](docs/04-roadmap.md) and
+[docs/09-testing.md](docs/09-testing.md).
 
 | # | Milestone | State |
 |---|-----------|-------|
@@ -109,19 +111,22 @@ SQL database is in [docs/04-roadmap.md](docs/04-roadmap.md).
 | 2 | MVCC transactions + snapshot isolation | ✅ done |
 | 3 | SQL: parser → planner → executor | ✅ done |
 | 4 | Raft: leader election + log replication | ✅ done |
-| 5 | 3-node cluster + Jepsen-style fault injection | ⬜ |
+| 5 | 3-node cluster + Jepsen-style fault injection | ✅ done |
 | 6 | Benchmarks, CI, `v1.0.0` | ⬜ |
 
-The endgame: **a 3-node cluster that keeps serving correct, linearizable reads
-while you kill the leader** — verified by a fault-injection harness, not by
-assertion.
+The cluster acknowledges writes only after durable staging and commit on a
+majority. The fault harness proves that acknowledged writes remain readable
+across leader death, minority isolation, pause/resume, and restart catch-up.
+Its history checker also rejects a known-bad stale read. The live TCP protocol
+uses deterministic majority fencing; the independently tested Raft state
+machine is not yet wired into that protocol.
 
 ## Repository layout
 
 ```
 nutdb/
-├── src/          # crc, WAL, pages, pager, B-tree, store, CLI
-├── tests/        # crash recovery, storage, checkpoint failure tests
+├── src/          # storage, SQL, Raft, TCP server/client, checker, CLI
+├── tests/        # crash, storage, MVCC, SQL, Raft, and cluster tests
 ├── docs/         # durability, MVCC, Raft, SQL, roadmap, milestones, ADRs
 └── Cargo.toml    # zero dependencies
 ```

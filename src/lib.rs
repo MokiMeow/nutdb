@@ -17,15 +17,18 @@
 pub mod command;
 pub mod btree;
 pub mod catalog;
+pub mod client;
 pub mod crc;
 pub mod gc;
 pub mod page;
 pub mod pager;
 pub mod raft;
+pub mod server;
 pub mod store;
 pub mod sql;
 pub mod txn;
 pub mod version;
+pub mod linearizability;
 pub mod wal;
 
 pub use command::Command;
@@ -33,4 +36,5 @@ pub use btree::BTreeIndex;
 pub use store::{Recovery, Store};
 pub use txn::{MvccStore, Transaction, TxnError};
 pub use sql::{SqlEngine, SqlResult, Value};
+pub use client::ClusterClient;
 pub use wal::{ReplayResult, Wal};

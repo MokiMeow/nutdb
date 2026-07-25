@@ -12,7 +12,7 @@ leader being killed."
 | 2 | **MVCC** ✅ | versioned rows, snapshot isolation, GC | transactions, watermarks, concurrency control |
 | 3 | **SQL** ✅ | lexer → parser → planner → executor | query planning, expression evaluation |
 | 4 | **Raft** ✅ | leader election, log replication | consensus, terms, log matching, commit index |
-| 5 | **Cluster** | 3 nodes + fault injection | partitions, linearizability, real distributed failure |
+| 5 | **Cluster** ✅ | 3 nodes + fault injection | partitions, linearizability, real distributed failure |
 | 6 | **Polish** | benchmarks, CI, `v1.0.0` | measurement and presentation |
 
 ## Dependency order

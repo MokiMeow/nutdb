@@ -7,6 +7,14 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Milestone 5: three real TCP node processes with independent durable stores,
+  redirecting clients, majority-before-ack replication, leader failover,
+  partition fencing, restart catch-up, and tombstone propagation.
+- A Knossos-style register-history checker that respects real-time ordering,
+  models timeout results as indeterminate, accepts recorded TCP histories, and
+  rejects a deliberately impossible stale-read history.
+- A process-level demo that pauses a follower, kills the leader, continues on
+  the remaining majority, and verifies every acknowledged write.
 - Milestone 4: persisted Raft terms/votes/logs, randomized elections,
   RequestVote freshness, AppendEntries log matching and suffix repair,
   current-term majority commit, ordered exactly-once apply, an in-memory fault
