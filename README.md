@@ -31,7 +31,7 @@ set(k, v) ──▶ append to WAL ──▶ fsync ──▶ update memory ──
                   it is detected by the checksum and discarded
 ```
 
-## Milestone 0 result — durability, proven
+## Storage result — durability plus bounded recovery
 
 ```
 $ cargo run --release -- demo
@@ -52,7 +52,12 @@ process 'crashes' — reopening from the log only
 durability verified: every committed write survived, the delete stuck
 ```
 
-**10 crash-recovery tests**, including the ones that actually matter:
+The WAL is now a bounded recovery journal in front of checksummed 4 KiB pages
+and a handwritten multi-level B-tree. Checkpoints durably publish a page
+snapshot before truncating the log; group commit shares one `fsync` across a
+batch without weakening the acknowledge rule.
+
+The suite includes manufactured failure cases, including:
 
 | test | what it proves |
 |---|---|
@@ -61,6 +66,9 @@ durability verified: every committed write survived, the delete stuck
 | `corrupted_payload_fails_its_checksum` | a single flipped bit is caught, not replayed as data |
 | `truncated_header_is_handled` | a partial header is a torn write, not a parse crash |
 | `last_write_wins_and_deletes_persist` | replay order is the write order |
+| `one_hundred_thousand_keys_split_and_survive_reopen` | internal-node splits and page persistence work at scale |
+| `partial_checkpoint_record_recovers_from_the_synced_snapshot` | a crash during checkpoint publication preserves the last durable state |
+| `appends_after_torn_tail_remain_replayable` | recovery repairs the bad tail before accepting new writes |
 
 ## Why it is interesting (the depth on show)
 
@@ -80,7 +88,7 @@ durability verified: every committed write survived, the delete stuck
 
 ```bash
 cargo run --release -- demo     # the durability demonstration above
-cargo test                      # 10 crash-recovery tests + unit tests
+cargo test                      # units, crash recovery, pages, B-tree, checkpoints
 cargo run -- set user:1 ada     # persist a key
 cargo run -- get user:1         # read it back
 cargo run -- list               # everything stored
@@ -90,13 +98,13 @@ Needs only a Rust toolchain — there are no dependencies at all.
 
 ## Status
 
-Milestone 0 (durable storage) is **done and tested**. The road to a replicated
+Milestones 0 and 1 (durability and storage) are **done and tested**. The road to a replicated
 SQL database is in [docs/04-roadmap.md](docs/04-roadmap.md).
 
 | # | Milestone | State |
 |---|-----------|-------|
 | 0 | WAL + crash recovery | ✅ done |
-| 1 | Pages, B-tree, and a real on-disk store | ⬜ |
+| 1 | Pages, B-tree, and a real on-disk store | ✅ done |
 | 2 | MVCC transactions + snapshot isolation | ⬜ |
 | 3 | SQL: parser → planner → executor | ⬜ |
 | 4 | Raft: leader election + log replication | ⬜ |
@@ -111,8 +119,8 @@ assertion.
 
 ```
 nutdb/
-├── src/          # crc, wal, command, store, cli
-├── tests/        # crash-recovery and torn-write tests
+├── src/          # crc, WAL, pages, pager, B-tree, store, CLI
+├── tests/        # crash recovery, storage, checkpoint failure tests
 ├── docs/         # durability, MVCC, Raft, SQL, roadmap, milestones, ADRs
 └── Cargo.toml    # zero dependencies
 ```

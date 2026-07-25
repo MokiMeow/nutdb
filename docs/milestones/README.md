@@ -6,7 +6,7 @@ including the tests that try to break it.
 | # | Milestone | State |
 |---|-----------|-------|
 | 0 | [Durability](milestone-0-durability.md) | ✅ done |
-| 1 | [Storage engine](milestone-1-storage.md) | ⬜ |
+| 1 | [Storage engine](milestone-1-storage.md) | ✅ done |
 | 2 | [MVCC](milestone-2-mvcc.md) | ⬜ |
 | 3 | [SQL](milestone-3-sql.md) | ⬜ |
 | 4 | [Raft](milestone-4-raft.md) | ⬜ |

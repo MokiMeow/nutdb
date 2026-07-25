@@ -41,6 +41,7 @@ impl Wal {
         let file = OpenOptions::new()
             .create(true)
             .read(true)
+            .write(true)
             .append(true)
             .open(&path)?;
         Ok(Self { file, path })
@@ -72,6 +73,28 @@ impl Wal {
         self.file.sync_all()
     }
 
+    /// Remove every byte from the log after a durable checkpoint.
+    pub fn reset(&mut self) -> io::Result<()> {
+        // Windows grants append handles FILE_APPEND_DATA rather than the
+        // FILE_WRITE_DATA right required by SetEndOfFile, so truncate through
+        // a short-lived ordinary write handle.
+        let file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)?;
+        file.sync_all()
+    }
+
+    /// Discard a torn or corrupt tail before accepting new records.
+    ///
+    /// Without this repair, appending after a bad record would place valid
+    /// data behind a prefix replay must always stop at.
+    pub fn truncate_path(path: impl AsRef<Path>, valid_bytes: u64) -> io::Result<()> {
+        let file = OpenOptions::new().write(true).open(path)?;
+        file.set_len(valid_bytes)?;
+        file.sync_all()
+    }
+
     /// Bytes currently in the log file.
     pub fn size(&self) -> io::Result<u64> {
         Ok(self.file.metadata()?.len())
@@ -94,6 +117,7 @@ impl Wal {
             Err(error) => return Err(error),
         };
 
+        let file_len = file.metadata()?.len();
         let mut reader = BufReader::new(file);
         let mut records = Vec::new();
         let mut truncated = false;
@@ -114,6 +138,11 @@ impl Wal {
             let len = u32::from_le_bytes(header[0..4].try_into().unwrap()) as usize;
             let expected_crc = u32::from_le_bytes(header[4..8].try_into().unwrap());
 
+            let remaining = file_len.saturating_sub(valid_bytes + HEADER_LEN as u64);
+            if len as u64 > remaining {
+                truncated = true;
+                break;
+            }
             let mut payload = vec![0u8; len];
             match read_exact_or_eof(&mut reader, &mut payload)? {
                 ReadOutcome::Full => {}

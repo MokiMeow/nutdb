@@ -1,8 +1,7 @@
 //! nutdb — a distributed SQL database built from the durability layer up.
 //!
-//! Milestone 0 is the foundation everything else stands on: a write-ahead log
-//! with checksummed records, and a key-value store that survives a crash at any
-//! point. Later milestones add MVCC transactions, a SQL layer, and Raft
+//! The storage foundation is a checksummed write-ahead log plus a paged B-tree
+//! with durable checkpoints. Later milestones add MVCC transactions, SQL, and Raft
 //! replication — but none of those mean anything if a crash can lose or corrupt
 //! committed data, so durability comes first.
 //!
@@ -16,10 +15,14 @@
 //! ```
 
 pub mod command;
+pub mod btree;
 pub mod crc;
+pub mod page;
+pub mod pager;
 pub mod store;
 pub mod wal;
 
 pub use command::Command;
+pub use btree::BTreeIndex;
 pub use store::{Recovery, Store};
 pub use wal::{ReplayResult, Wal};

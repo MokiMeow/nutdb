@@ -8,7 +8,7 @@ leader being killed."
 | # | Milestone | You'll build | You'll learn |
 |---|-----------|--------------|--------------|
 | 0 | **Durability** ✅ | CRC'd WAL, crash recovery, KV store | write-ahead logging, torn writes, fsync ordering |
-| 1 | **Storage engine** | pages, a B-tree, on-disk store, checkpointing | page layout, node splits, buffer management |
+| 1 | **Storage engine** ✅ | pages, a B-tree, on-disk store, checkpointing | page layout, node splits, buffer management |
 | 2 | **MVCC** | versioned rows, snapshot isolation, GC | transactions, watermarks, concurrency control |
 | 3 | **SQL** | lexer → parser → planner → executor | query planning, expression evaluation |
 | 4 | **Raft** | leader election, log replication | consensus, terms, log matching, commit index |

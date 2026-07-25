@@ -38,7 +38,7 @@ then a storage engine, then transactions, then SQL, then replication.
                         │
         MVCC: versioned rows, snapshot isolation        M2
                         │
-        storage engine: pages, B-tree, checkpoints      M1
+        storage engine: pages, B-tree, checkpoints   ✅ M1
                         │
         durability: WAL + CRC + crash recovery       ✅ M0
                         │
@@ -47,9 +47,11 @@ then a storage engine, then transactions, then SQL, then replication.
         cluster: 3 nodes + fault injection              M5
 ```
 
-Milestone 0 is complete and tested: a store whose committed writes survive a
-crash at any point, with 10 tests that create the failures rather than assume
-they cannot happen. See [docs/05](05-durability.md).
+Milestones 0 and 1 are complete and tested: acknowledged writes survive torn
+WAL records, the recovered tail is repaired before new appends, and 100,000
+keys survive B-tree splits, checkpoint, and reopen. See
+[durability](05-durability.md) and the
+[storage milestone](milestones/milestone-1-storage.md).
 
 Read the [architecture doc](02-architecture.md) next, or
 [getting started](01-getting-started.md) to run it.

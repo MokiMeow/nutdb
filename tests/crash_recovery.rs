@@ -240,3 +240,18 @@ fn handles_empty_and_large_payloads() {
     assert_eq!(replayed.records[1], large);
     assert_eq!(replayed.records[2], b"tail");
 }
+
+#[test]
+fn absurd_torn_length_is_rejected_without_allocating_it() {
+    let dir = TempDir::new("absurd-length");
+    let path = dir.wal();
+    let mut bytes = Vec::new();
+    bytes.extend_from_slice(&u32::MAX.to_le_bytes());
+    bytes.extend_from_slice(&0u32.to_le_bytes());
+    fs::write(&path, bytes).unwrap();
+
+    let replayed = Wal::replay(path).unwrap();
+    assert!(replayed.truncated);
+    assert!(replayed.records.is_empty());
+    assert_eq!(replayed.valid_bytes, 0);
+}
