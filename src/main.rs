@@ -6,10 +6,15 @@
 //!   cargo run -- list          show every key
 //!   cargo run -- sql "..."     execute SQL against data/nutdb.sql.wal
 
+use std::collections::BTreeMap;
 use std::io;
+use std::net::SocketAddr;
 use std::process::ExitCode;
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
-use nutdb::{SqlEngine, SqlResult, Store};
+use nutdb::server::Server;
+use nutdb::{ClusterClient, SqlEngine, SqlResult, Store};
 
 const DEFAULT_PATH: &str = "data/nutdb.wal";
 
@@ -32,6 +37,8 @@ fn main() -> ExitCode {
             Some(source) => sql(source),
             None => usage("sql <statement(s)>"),
         },
+        "serve" => serve(&args[1..]),
+        "client" => cluster_client(&args[1..]),
         other => usage(&format!("unknown command '{other}'")),
     };
 
@@ -155,11 +162,100 @@ fn sql(source: &str) -> io::Result<()> {
     Ok(())
 }
 
+fn serve(args: &[String]) -> io::Result<()> {
+    let id: u64 = flag(args, "--id")?
+        .parse()
+        .map_err(|_| invalid_argument("serve: --id must be an integer"))?;
+    let listen: SocketAddr = flag(args, "--listen")?
+        .parse()
+        .map_err(|_| invalid_argument("serve: invalid --listen address"))?;
+    let data = flag(args, "--data")?;
+    let mut peers = BTreeMap::new();
+    let peer_list = flag(args, "--peers")?;
+    if !peer_list.is_empty() {
+        for peer in peer_list.split(',') {
+            let (peer_id, address) = peer
+                .split_once('=')
+                .ok_or_else(|| invalid_argument("serve: peers are id=address"))?;
+            peers.insert(
+                peer_id
+                    .parse()
+                    .map_err(|_| invalid_argument("serve: invalid peer id"))?,
+                address
+                    .parse()
+                    .map_err(|_| invalid_argument("serve: invalid peer address"))?,
+            );
+        }
+    }
+    let server = Server::bind(id, listen, peers, data)?;
+    println!("node {id} listening on {}", server.local_addr()?);
+    server.run(Arc::new(AtomicBool::new(true)))
+}
+
+fn cluster_client(args: &[String]) -> io::Result<()> {
+    let mut nodes = BTreeMap::new();
+    for node in flag(args, "--nodes")?.split(',') {
+        let (id, address) = node
+            .split_once('=')
+            .ok_or_else(|| invalid_argument("client: nodes are id=address"))?;
+        nodes.insert(
+            id.parse()
+                .map_err(|_| invalid_argument("client: invalid node id"))?,
+            address
+                .parse()
+                .map_err(|_| invalid_argument("client: invalid node address"))?,
+        );
+    }
+    let command_at = args
+        .iter()
+        .position(|arg| matches!(arg.as_str(), "put" | "get" | "delete"))
+        .ok_or_else(|| invalid_argument("client: expected put/get/delete"))?;
+    let client = ClusterClient::new(nodes);
+    match args[command_at].as_str() {
+        "put" => {
+            let key = args
+                .get(command_at + 1)
+                .ok_or_else(|| invalid_argument("client put: missing key"))?;
+            let value = args
+                .get(command_at + 2)
+                .ok_or_else(|| invalid_argument("client put: missing value"))?;
+            client.put(key, value)?;
+            println!("ok");
+        }
+        "get" => {
+            let key = args
+                .get(command_at + 1)
+                .ok_or_else(|| invalid_argument("client get: missing key"))?;
+            println!("{}", client.get(key)?.as_deref().unwrap_or("(nil)"));
+        }
+        "delete" => {
+            let key = args
+                .get(command_at + 1)
+                .ok_or_else(|| invalid_argument("client delete: missing key"))?;
+            client.delete(key)?;
+            println!("ok");
+        }
+        _ => unreachable!("position filter"),
+    }
+    Ok(())
+}
+
+fn flag<'a>(args: &'a [String], name: &str) -> io::Result<&'a str> {
+    args.windows(2)
+        .find(|pair| pair[0] == name)
+        .map(|pair| pair[1].as_str())
+        .ok_or_else(|| invalid_argument(&format!("serve: missing {name}")))
+}
+
+fn invalid_argument(message: &str) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidInput, message)
+}
+
 fn usage(message: &str) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::InvalidInput,
         format!(
-            "usage: nutdb [demo | set <k> <v> | get <k> | list | sql <statement(s)>]  ({message})"
+            "usage: nutdb [demo | set/get/list | sql | serve | client --nodes ID=ADDR,... put/get/delete]  ({message})"
         ),
     ))
 }
