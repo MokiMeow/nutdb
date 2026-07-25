@@ -59,6 +59,14 @@ cargo run -- get user:1        # ada
 cargo run -- list
 ```
 
+Execute SQL (multiple semicolon-separated statements are accepted):
+
+```bash
+cargo run -- sql "CREATE TABLE users (id INT PRIMARY KEY, name TEXT);"
+cargo run -- sql "INSERT INTO users (id, name) VALUES (1, 'Ada');"
+cargo run -- sql "SELECT * FROM users WHERE id = 1;"
+```
+
 The WAL lives in `data/nutdb.wal`; a checkpoint snapshot uses
 `data/nutdb.wal.pages`. Delete both to start fresh.
 

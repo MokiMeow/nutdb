@@ -1,53 +1,34 @@
-# Milestone 3 — SQL
+# Milestone 3 — SQL ✅
 
-**Goal:** speak SQL — lexer, parser, planner, executor — over the transactional
-storage engine.
+**Goal:** execute a useful SQL subset over durable snapshot-isolated storage.
 
-## Concepts
+## What shipped
 
-Lexing and recursive-descent parsing with operator precedence, logical vs
-physical plans, the iterator (volcano) execution model, and expression
-evaluation.
-
-## Tasks
-
-- [ ] **Lexer**: keywords, identifiers, string/number literals, operators,
-      with source positions for error messages.
-- [ ] **Parser** (recursive descent): `CREATE TABLE`, `INSERT`, `SELECT … FROM …
-      WHERE … ORDER BY … LIMIT`, `UPDATE`, `DELETE`, `BEGIN/COMMIT/ROLLBACK`.
-      Expression precedence via one function per level.
-- [ ] **Catalog**: table definitions (name, columns, types, primary key)
-      persisted through the storage engine like any other data.
-- [ ] **Planner**: logical plan (Scan → Filter → Project → Sort → Limit), then a
-      physical plan. A simple rule-based optimiser: push filters below
-      projections, and use an index scan when the predicate hits the key.
-- [ ] **Executor**: iterator model — every operator exposes `next() ->
-      Option<Row>` and pulls from its child. Composable and memory-bounded.
-- [ ] **Types**: integers, text, booleans, `NULL` with three-valued logic
-      (`NULL = NULL` is `NULL`, not true — get this right).
-- [ ] **Tests**: end-to-end SQL against expected result sets; parse errors
-      report the right position; `EXPLAIN` output shows the plan.
-
-## Files
-
-`src/sql/lexer.rs`, `src/sql/parser.rs`, `src/sql/ast.rs`, `src/sql/plan.rs`,
-`src/sql/executor.rs`, `src/catalog.rs`, `tests/sql.rs`, `docs/08-sql.md`.
+- [x] A position-aware lexer for keywords, identifiers, signed integers,
+      escaped text literals, punctuation, and comparison operators.
+- [x] A recursive-descent parser for `CREATE TABLE`, `INSERT`, `SELECT` with
+      `WHERE`/`ORDER BY`/`LIMIT`, `UPDATE`, `DELETE`,
+      `BEGIN`/`COMMIT`/`ROLLBACK`, and `EXPLAIN`.
+- [x] Persisted table schemas with typed columns and exactly one primary key.
+- [x] Integer, text, boolean, and `NULL` values with three-valued logic.
+- [x] A rule-based physical planner that selects primary-key index lookup for
+      equality and otherwise performs a scan.
+- [x] Pull-based scan/filter operators; sort materializes by necessity.
+- [x] Transactional DDL and DML over `MvccStore`.
+- [x] A `cargo run -- sql "..."` CLI path.
 
 ## Definition of Done
 
-- [ ] `CREATE TABLE`, `INSERT`, `SELECT` with `WHERE`/`ORDER BY`/`LIMIT`,
-      `UPDATE`, and `DELETE` all work end to end and persist.
-- [ ] Transactions work through SQL: `BEGIN; … ROLLBACK;` leaves no trace.
-- [ ] `NULL` semantics are correct (three-valued logic) — tested explicitly.
-- [ ] `EXPLAIN` prints the physical plan, and a filter on the primary key
-      chooses an index scan rather than a full scan (proven by the plan output).
-- [ ] Syntax errors report a useful message and position.
-- [ ] Build warning-free; all earlier tests green.
+- [x] `CREATE TABLE`, `INSERT`, persistent `SELECT`,
+      `WHERE`/`ORDER BY`/`LIMIT`, `UPDATE`, and `DELETE` work end to end.
+- [x] `BEGIN; ... ROLLBACK;` leaves no visible row; commit persists.
+- [x] Comparisons against `NULL` produce unknown; filtering retains only true.
+- [x] `EXPLAIN` reports `IndexLookup` for primary-key equality and `Scan` for a
+      non-key predicate.
+- [x] Duplicate primary keys, wrong types, columns, and schemas are rejected.
+- [x] Syntax errors include the exact byte position.
+- [x] Linux release build is warning-free and all earlier suites remain green.
 
-## Notes
-
-Keep the executor's iterator model strict — an operator that materialises its
-whole input defeats the design and will not survive large tables. The volcano
-model is also what makes adding operators (joins, aggregates) additive later.
+See [the SQL design](../08-sql.md).
 
 **Next:** [Milestone 4 — Raft](milestone-4-raft.md).

@@ -10,7 +10,7 @@ leader being killed."
 | 0 | **Durability** ✅ | CRC'd WAL, crash recovery, KV store | write-ahead logging, torn writes, fsync ordering |
 | 1 | **Storage engine** ✅ | pages, a B-tree, on-disk store, checkpointing | page layout, node splits, buffer management |
 | 2 | **MVCC** ✅ | versioned rows, snapshot isolation, GC | transactions, watermarks, concurrency control |
-| 3 | **SQL** | lexer → parser → planner → executor | query planning, expression evaluation |
+| 3 | **SQL** ✅ | lexer → parser → planner → executor | query planning, expression evaluation |
 | 4 | **Raft** | leader election, log replication | consensus, terms, log matching, commit index |
 | 5 | **Cluster** | 3 nodes + fault injection | partitions, linearizability, real distributed failure |
 | 6 | **Polish** | benchmarks, CI, `v1.0.0` | measurement and presentation |
