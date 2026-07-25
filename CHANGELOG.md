@@ -6,7 +6,12 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-07-25
+
 ### Added
+- Milestone 6: a fixed-seed 200-step Raft fault simulation, reproducible
+  end-to-end benchmarks, CI coverage for the full suite and process failover
+  demo, an architecture diagram, and a recorded failover artifact.
 - Milestone 5: three real TCP node processes with independent durable stores,
   redirecting clients, majority-before-ack replication, leader failover,
   partition fencing, restart catch-up, and tombstone propagation.

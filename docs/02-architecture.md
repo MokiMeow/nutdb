@@ -93,3 +93,12 @@ This split makes both pieces testable, but it is also a deliberate limitation:
 the live TCP service does not yet exchange Raft RPCs. It therefore demonstrates
 the specified crash-stop and partition behavior without claiming to be the
 production networking frontend for the Raft state machine.
+
+```text
+client ──► TCP majority leader ──► leader WAL ──► storage engine
+                         │
+                         ├──► follower WAL ──► storage engine
+                         └──► follower WAL ──► storage engine
+
+Raft Figure 2 state machine ── deterministic safety tests
+```

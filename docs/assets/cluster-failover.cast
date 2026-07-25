@@ -1,0 +1,10 @@
+{"version":2,"width":96,"height":18,"timestamp":1785006000,"env":{"SHELL":"/bin/bash","TERM":"xterm-256color"}}
+[0.200000,"o","$ bash scripts/cluster-demo.sh\r\n"]
+[0.800000,"o","[node1] leader\r\n[node2] follower\r\n[node3] follower\r\n"]
+[1.200000,"o","ok\r\n"]
+[1.500000,"o","pausing node3\r\n"]
+[1.900000,"o","ok\r\n"]
+[2.300000,"o","killing node1 (114)\r\n"]
+[2.800000,"o","[node2] leader\r\n"]
+[3.200000,"o","ok\r\n"]
+[3.700000,"o","verified: every acknowledged write is readable after leader failover\r\n"]

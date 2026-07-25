@@ -13,6 +13,36 @@
   <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="MIT">
 </p>
 
+<p align="center">
+  <a href="docs/assets/cluster-failover.cast">
+    <img src="docs/assets/cluster-failover.svg" alt="Recorded three-node failover demo" width="900">
+  </a>
+</p>
+
+The recording above is produced by the real
+[`scripts/cluster-demo.sh`](scripts/cluster-demo.sh): node 3 is paused, node 1
+is killed, node 2 continues on the majority, and every acknowledged write is
+read back. Click it for the asciinema v2 recording.
+
+## Measured results
+
+Release build on WSL2/Linux 6.6, Intel i7-13650HX, Windows-mounted storage.
+Every durability path uses `sync_file`; these are three-sample medians from
+`cargo run --release -- bench`, not in-memory microbenchmarks.
+
+| benchmark | result |
+|---|---:|
+| single writes, fsync each | 335 ops/s |
+| group commit, one fsync | 27,357 ops/s |
+| MVCC snapshot reads with a concurrent writer | 150,116 ops/s |
+| single write latency | 2.981 ms/op |
+| 3-node replicated write latency | 54.736 ms/op |
+| reopen and replay 10,000 records | 6.848 ms |
+
+Counts and conditions are printed by the benchmark. Results vary with storage
+and scheduler; the important visible cost is synchronous replication versus a
+single durable write.
+
 ---
 
 ## What this is
@@ -100,7 +130,7 @@ Needs only a Rust toolchain — there are no dependencies at all.
 
 ## Status
 
-Milestones 0 through 5 are **done and tested**. The road and evidence are in
+All milestones are **done and tested**. The road and evidence are in
 [docs/04-roadmap.md](docs/04-roadmap.md) and
 [docs/09-testing.md](docs/09-testing.md).
 
@@ -112,7 +142,7 @@ Milestones 0 through 5 are **done and tested**. The road and evidence are in
 | 3 | SQL: parser → planner → executor | ✅ done |
 | 4 | Raft: leader election + log replication | ✅ done |
 | 5 | 3-node cluster + Jepsen-style fault injection | ✅ done |
-| 6 | Benchmarks, CI, `v1.0.0` | ⬜ |
+| 6 | Benchmarks, CI, `v1.0.0` | ✅ done |
 
 The cluster acknowledges writes only after durable staging and commit on a
 majority. The fault harness proves that acknowledged writes remain readable
@@ -120,6 +150,38 @@ across leader death, minority isolation, pause/resume, and restart catch-up.
 Its history checker also rejects a known-bad stale read. The live TCP protocol
 uses deterministic majority fencing; the independently tested Raft state
 machine is not yet wired into that protocol.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    C[client] --> L[TCP majority leader]
+    L --> LW[leader WAL]
+    LW --> LS[leader storage engine]
+    L --> F1[follower WAL + storage]
+    L --> F2[follower WAL + storage]
+    R[Raft Figure 2 state machine] -. deterministic safety proof .-> L
+```
+
+The same WAL durability primitive is used by each replica. The separately
+tested Raft implementation owns term, vote, log-matching, and commit-index
+invariants; the live TCP integration currently uses deterministic
+majority-fenced leadership rather than Raft RPCs.
+
+## Guarantees and limitations
+
+NutDB guarantees checksummed torn-tail recovery, fsync-before-acknowledge,
+snapshot isolation with first-committer-wins write conflicts, and
+majority-before-acknowledge for the TCP key/value cluster. Tests manufacture
+corruption, crashes, partitions, pauses, timeouts, restarts, and stale reads.
+
+It does **not** provide serializable isolation (write skew is possible),
+Byzantine-fault tolerance, distributed SQL transactions, joins, secondary
+indexes, Raft snapshot transfer, or a PostgreSQL wire protocol. TCP reads and
+writes are key/value operations; SQL is currently local. The TCP service does
+not yet drive the Raft state machine. Durability also assumes the operating
+system and storage device honor `sync_file`; consumer hardware can lie about
+flush completion, and NutDB cannot detect that.
 
 ## Repository layout
 
