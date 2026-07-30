@@ -21,7 +21,7 @@ including the tests that try to break it.
 
 1. Pick the lowest-numbered unfinished milestone.
 2. Implement its tasks.
-3. **Write the test that tries to break it** — not just the happy path.
+3. **Write the test that tries to break it**, not just the happy path.
 4. `cargo build --release` warning-free, `cargo test` green.
 5. Update the concept doc, tick the DoD, update README/CHANGELOG/roadmap.
 6. Commit (`type(scope): …`), keep CI green.
@@ -29,6 +29,6 @@ including the tests that try to break it.
 ## The rule that matters most
 
 **A safety property without a test that tries to violate it is a claim, not a
-property.** Milestone 0 does not assert "we handle torn writes" — it writes a
+property.** Milestone 0 does not assert "we handle torn writes": it writes a
 torn record into the log and proves the committed data still comes back. Hold
 every later milestone to the same bar, especially Raft.

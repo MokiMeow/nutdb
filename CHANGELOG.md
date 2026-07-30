@@ -6,7 +6,11 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.0.0] — 2026-07-25
+### Changed
+- Expanded the README with exact host requirements and complete documentation
+  navigation, and standardized first-party Markdown punctuation.
+
+## [1.0.0]: 2026-07-25
 
 ### Added
 - Milestone 6: a fixed-seed 200-step Raft fault simulation, reproducible
@@ -46,7 +50,7 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Storage failure tests covering 100,000-key reopen, dirty eviction, page
   corruption, interrupted checkpoints, partial checkpoint records, bounded WAL
   growth, and recovery followed by new durable appends.
-- Milestone 0: durability — a write-ahead log of `[len][crc32][payload]`
+- Milestone 0: durability: a write-ahead log of `[len][crc32][payload]`
   records, CRC-32 (IEEE) checksums verified against standard vectors, a
   hand-written `Set`/`Delete` on-disk encoding with bounds and UTF-8 checking,
   and a key-value store that appends and `fsync`s **before** mutating memory.
@@ -67,5 +71,5 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   later append could be acknowledged after the bad bytes but remain
   unreachable because every replay stopped at the same damaged record.
 
-## [0.1.0] — milestone 0
+## [0.1.0]: milestone 0
 - First working version: a crash-safe, checksummed durable key-value store.

@@ -1,4 +1,4 @@
-# 07 — Raft
+# 07: Raft
 
 The implementation follows the state and receiver rules in Figure 2 of the Raft
 paper.

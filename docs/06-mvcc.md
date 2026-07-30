@@ -1,4 +1,4 @@
-# 06 — MVCC
+# 06: MVCC
 
 nutdb implements snapshot isolation with durable transaction boundaries and
 first-committer-wins conflicts.

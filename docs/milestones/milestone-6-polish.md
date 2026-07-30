@@ -1,4 +1,4 @@
-# Milestone 6 — Polish (portfolio pass)
+# Milestone 6: Polish (portfolio pass)
 
 **Goal:** benchmarks, presentation, and `v1.0.0`.
 
@@ -16,7 +16,7 @@
 ### Benchmarks (measured, with conditions stated)
 - [x] Single-node write throughput with and without group commit.
 - [x] Read throughput under MVCC with a concurrent writer.
-- [x] 3-node replicated write latency vs single-node — **replication costs
+- [x] 3-node replicated write latency vs single-node: **replication costs
       something; publish the number rather than hiding it.**
 - [x] Recovery time after a crash with a large log.
 
@@ -26,7 +26,7 @@
       write still readable. Embed at the top of the README.
 - [x] An architecture diagram: client → Raft leader → WAL → storage engine →
       followers.
-- [x] A short "what nutdb guarantees, and what it doesn't" section — isolation
+- [x] A short "what nutdb guarantees, and what it doesn't" section: isolation
       level, durability assumptions (including that consumer drives can lie
       about fsync), and known limitations. **Honesty here reads as expertise.**
 

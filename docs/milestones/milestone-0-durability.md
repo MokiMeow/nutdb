@@ -1,4 +1,4 @@
-# Milestone 0 — Durability ✅ (done)
+# Milestone 0: Durability ✅ (done)
 
 **Goal:** a key-value store whose committed writes survive a crash at any point,
 including mid-append.
@@ -10,16 +10,16 @@ testing.
 
 ## What shipped
 
-- [x] `src/crc.rs` — CRC-32 (IEEE), verified against standard test vectors.
-- [x] `src/wal.rs` — append-only log of `[len][crc32][payload]` records;
+- [x] `src/crc.rs`: CRC-32 (IEEE), verified against standard test vectors.
+- [x] `src/wal.rs`: append-only log of `[len][crc32][payload]` records;
       `append`, `sync`, and `replay` that stops at the first torn or corrupt
       record and reports the valid prefix length.
-- [x] `src/command.rs` — hand-written `Set`/`Delete` encoding with explicit
+- [x] `src/command.rs`: hand-written `Set`/`Delete` encoding with explicit
       bounds checking and UTF-8 validation.
-- [x] `src/store.rs` — the store: **append → fsync → mutate memory**, plus a
+- [x] `src/store.rs`: the store: **append → fsync → mutate memory**, plus a
       `Recovery` report (records replayed, truncated, valid bytes).
-- [x] `src/main.rs` — a demo that writes, "crashes", reopens, and verifies.
-- [x] `tests/crash_recovery.rs` — 10 tests that manufacture failures.
+- [x] `src/main.rs`: a demo that writes, "crashes", reopens, and verifies.
+- [x] `tests/crash_recovery.rs`: 10 tests that manufacture failures.
 
 ## Verified result
 
@@ -33,7 +33,7 @@ durability verified: every committed write survived, the delete stuck
 
 ## Definition of Done
 
-- [x] `cargo build --release` — zero warnings.
+- [x] `cargo build --release`: zero warnings.
 - [x] Committed writes survive a simulated crash (drop + reopen).
 - [x] A **torn write** (header promising bytes that were never written) is
       discarded, earlier data survives, and `valid_bytes` equals the exact
@@ -49,14 +49,14 @@ durability verified: every committed write survived, the delete stuck
 
 The checksum is not decoration. Length-prefixed records alone cannot distinguish
 "the file ended cleanly" from "a crash left half a record whose length field is
-garbage that happens to parse." The CRC is what makes recovery *decidable* —
+garbage that happens to parse." The CRC is what makes recovery *decidable*,
 which is why `corrupted_payload_fails_its_checksum` is arguably the most
 important test in the repo.
 
 ## References
 
-- Gray & Reuter, *Transaction Processing* — logging and recovery
+- Gray & Reuter, *Transaction Processing*: logging and recovery
 - ARIES (Mohan et al.)
-- [docs/05 — Durability](../05-durability.md)
+- [docs/05: Durability](../05-durability.md)
 
-**Next:** [Milestone 1 — Storage engine](milestone-1-storage.md).
+**Next:** [Milestone 1: Storage engine](milestone-1-storage.md).

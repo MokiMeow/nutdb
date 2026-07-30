@@ -1,4 +1,4 @@
-# 08 — SQL
+# 08: SQL
 
 ## Pipeline
 

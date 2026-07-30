@@ -1,4 +1,4 @@
-# 05 — Durability
+# 05: Durability
 
 *Milestone 0.* The property everything else depends on: **an acknowledged write
 survives a crash, and no crash leaves the database in a state it cannot
@@ -20,7 +20,7 @@ Crash before step 2 → the caller was never told it succeeded, so losing it is
 correct.
 Crash *during* step 1 → a torn record, detected and discarded (below).
 
-Getting this order backwards — updating memory first, logging later — is the
+Getting this order backwards: updating memory first, logging later: is the
 classic bug that makes a database silently lose acknowledged writes.
 
 ## Record format
@@ -75,8 +75,8 @@ record did not become visible.
 
 - **Consumer drives can lie** about having flushed their write cache. Real
   databases document this; so does this one.
-- **`fsync` is slow** (~ms). Milestone 1 adds group commit — batching several
-  transactions into one flush — which is how real systems get throughput
+- **`fsync` is slow** (~ms). Milestone 1 adds group commit: batching several
+  transactions into one flush, which is how real systems get throughput
   without weakening the guarantee.
 
 ## Checkpoints
@@ -93,11 +93,11 @@ idempotently; and a completed checkpoint starts replay from an empty WAL.
   of a paged B-tree.
 - **M2**: log records carry transaction ids so recovery can roll back
   uncommitted work.
-- **M4**: the same log becomes the **Raft** replication log — which is why
+- **M4**: the same log becomes the **Raft** replication log, which is why
   getting its format and ordering right first matters so much.
 
 ## References
 
 - Gray & Reuter, *Transaction Processing*, ch. on logging and recovery
-- ARIES (Mohan et al.) — the canonical WAL recovery algorithm
-- [docs/06 — MVCC](06-mvcc.md), [docs/07 — Raft](07-raft.md)
+- ARIES (Mohan et al.): the canonical WAL recovery algorithm
+- [docs/06: MVCC](06-mvcc.md), [docs/07: Raft](07-raft.md)

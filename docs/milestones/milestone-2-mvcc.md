@@ -1,4 +1,4 @@
-# Milestone 2 — MVCC and transactions ✅
+# Milestone 2: MVCC and transactions ✅
 
 **Goal:** concurrent transactions read stable snapshots without blocking
 writers, while same-key writers use first-committer-wins conflict handling.
@@ -56,4 +56,4 @@ This is snapshot isolation, not serializability. It prevents dirty reads,
 non-repeatable reads, phantoms within a transaction snapshot, and same-key lost
 updates. It permits write skew across disjoint keys.
 
-**Next:** [Milestone 3 — SQL](milestone-3-sql.md).
+**Next:** [Milestone 3: SQL](milestone-3-sql.md).

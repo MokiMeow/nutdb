@@ -1,4 +1,4 @@
-# Milestone 4 — Raft consensus ✅
+# Milestone 4: Raft consensus ✅
 
 **Goal:** implement the Raft Figure 2 safety rules with persisted state and a
 transport that can manufacture network faults.
@@ -39,4 +39,4 @@ is already present.
 - [x] Apply order is exact and repeated heartbeats do not reapply commands.
 - [x] Linux release build is warning-free and all earlier suites remain green.
 
-**Next:** [Milestone 5 — Cluster](milestone-5-cluster.md).
+**Next:** [Milestone 5: Cluster](milestone-5-cluster.md).

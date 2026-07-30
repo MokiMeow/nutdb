@@ -1,8 +1,8 @@
-# 01 — Getting started
+# 01: Getting started
 
 ## Requirements
 
-A Rust toolchain (1.70+). Nothing else — nutdb has zero dependencies.
+A Rust toolchain (1.70+). Nothing else: nutdb has zero dependencies.
 
 ```bash
 sudo apt-get update && sudo apt-get install -y cargo rustc
@@ -20,7 +20,7 @@ process crash looks like to the data), reopens from the log alone, and verifies
 every committed write came back:
 
 ```
-nutdb milestone 0 — write-ahead log durability
+nutdb milestone 0: write-ahead log durability
 
 opening a fresh store at data/demo.wal
   set user:1 = ada
@@ -28,7 +28,7 @@ opening a fresh store at data/demo.wal
   delete temp
   3 keys live, log is 126 bytes
 
-process 'crashes' — reopening from the log only
+process 'crashes': reopening from the log only
   replayed 5 records (truncated: false)
   keys recovered: ["user:1", "user:2", "user:3"]
 
@@ -79,13 +79,13 @@ hexdump -C data/nutdb.wal | head
 ```
 
 Reading the bytes directly is the surest way to confirm a format change did what
-you intended — see [docs/05](05-durability.md).
+you intended: see [docs/05](05-durability.md).
 
 ## Troubleshooting
 
-- **`truncated: true` on open** — the log ended in a torn or corrupt record.
+- **`truncated: true` on open**: the log ended in a torn or corrupt record.
   That is the recovery path working: committed data before it is intact, and
   `Recovery::valid_bytes` reports where the good prefix ended; the store also
   repairs the file there before accepting another write.
-- **Permission errors** — the store creates `data/` relative to the working
+- **Permission errors**: the store creates `data/` relative to the working
   directory; run from the repo root.

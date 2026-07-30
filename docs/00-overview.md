@@ -1,4 +1,4 @@
-# 00 — Overview
+# 00: Overview
 
 ## What nutdb is
 
@@ -8,7 +8,7 @@ then a storage engine, then transactions, then SQL, then replication.
 
 ## The one-sentence idea
 
-> Never lose an acknowledged write — locally, then across a cluster.
+> Never lose an acknowledged write: locally, then across a cluster.
 
 ## Design goals
 
@@ -25,7 +25,7 @@ then a storage engine, then transactions, then SQL, then replication.
 
 ## What it is *not*
 
-- Not a Postgres replacement — no wire protocol, joins, or secondary indexes in
+- Not a Postgres replacement: no wire protocol, joins, or secondary indexes in
   v1 (all stretch goals).
 - Not serializable in v1: milestone 2 provides **snapshot isolation**, which
   does not prevent write skew. Said plainly, on purpose.

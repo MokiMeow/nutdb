@@ -1,4 +1,4 @@
-# Milestone 5 — Cluster + fault injection
+# Milestone 5: Cluster + fault injection
 
 **Goal:** run three real nodes, break them on purpose, and prove no acknowledged
 write is ever lost. This is the milestone that turns the project from "a
@@ -18,7 +18,7 @@ Linearizability, fault injection, and Jepsen-style verification.
       (a) kills the leader, (b) partitions a node from the others, (c) pauses a
       process (SIGSTOP/SIGCONT), (d) restarts a node from disk.
 - [x] **History recording**: log every client operation as
-      `invoke` / `ok` / `fail` / `info(timeout)` with timestamps — a timeout is
+      `invoke` / `ok` / `fail` / `info(timeout)` with timestamps: a timeout is
       **not** a failure; the write may still have committed, and treating it as
       failed is the classic checker bug.
 - [x] **Linearizability checker**: verify the recorded history is consistent with
@@ -63,8 +63,8 @@ listed as post-1.0 work rather than being hidden behind a stronger claim.
 
 ## References
 
-- Kyle Kingsbury's Jepsen analyses — the model for this milestone.
+- Kyle Kingsbury's Jepsen analyses: the model for this milestone.
 - Herlihy & Wing, *Linearizability: A Correctness Condition for Concurrent
   Objects*.
 
-**Next:** [Milestone 6 — Polish](milestone-6-polish.md).
+**Next:** [Milestone 6: Polish](milestone-6-polish.md).

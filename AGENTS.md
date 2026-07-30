@@ -1,4 +1,4 @@
-# AGENTS.md — how this repo is built
+# AGENTS.md: how this repo is built
 
 The working agreement for this repository: anyone contributing to nutdb should
 read it fully before making changes. If anything here conflicts with a note elsewhere, **this file
@@ -8,9 +8,9 @@ wins.**
 
 ## 1. How the work is organised
 
-- **Planning** — plans milestones, defines Definitions of Done, reviews
+- **Planning**: plans milestones, defines Definitions of Done, reviews
   diffs, keeps the docs and safety claims honest.
-- **Implementation** — proceed one milestone at a time against `docs/milestones/`,
+- **Implementation**: proceed one milestone at a time against `docs/milestones/`,
   keeping the build clean and every test green.
 
 The loop: **pick the lowest-numbered unfinished milestone → implement →
@@ -24,7 +24,7 @@ Done → update docs/CHANGELOG → commit → next.**
    before the caller is told it succeeded, and any crash leaves the database
    self-consistent.* Order is always: append to log → `fsync` → mutate memory.
 2. **Test the failure, not the happy path.** Crash-safety tests must *create*
-   the failure — truncate the log, flip a bit, kill mid-append. A test that only
+   the failure: truncate the log, flip a bit, kill mid-append. A test that only
    does clean shutdowns proves nothing about crash safety.
 3. **No dependencies.** `std` only. The WAL, checksums, B-tree, SQL parser, and
    Raft implementation are the project ([ADR 0001](docs/decisions/0001-no-dependencies.md)).
@@ -53,7 +53,7 @@ new failure mode has a test that reproduces it.
 
 - Rust 2021, `rustfmt` defaults. Idiomatic: `Result` over panics in library
   code, `?` for propagation, no `unwrap()` outside tests and `main`.
-- Module-level `//!` doc comments explain *why the design is what it is* — the
+- Module-level `//!` doc comments explain *why the design is what it is*: the
   WAL and store modules are the model to follow.
 - Document on-disk layouts as ASCII diagrams in the module doc.
 - Errors: `std::io::Error` with `ErrorKind::InvalidData` for format problems,
@@ -94,17 +94,17 @@ harness.
 - Do not add a dependency (no `serde`, no `tokio`, no `sqlparser`).
 - Do not claim a safety property without a test that tries to violate it.
 - Do not change an on-disk format without considering existing logs.
-- Do not implement Raft "roughly" — the safety rules (term checks, log matching,
+- Do not implement Raft "roughly": the safety rules (term checks, log matching,
   commit index) are exactly where subtle data loss hides.
 
 ## 8. Tools reference
 
-- **cargo** — build, test, bench.
-- **`cargo test -- --nocapture`** — see test output while debugging.
-- **`hexdump -C data/*.wal`** — inspect the on-disk format directly; the surest
+- **cargo**: build, test, bench.
+- **`cargo test -- --nocapture`**: see test output while debugging.
+- **`hexdump -C data/*.wal`**: inspect the on-disk format directly; the surest
   way to check a record layout.
 - **The Raft paper** (Ongaro & Ousterhout, *In Search of an Understandable
-  Consensus Algorithm*) — the authority for milestone 4.
-- **Jepsen's writeups** — the model for milestone 5's fault injection.
+  Consensus Algorithm*): the authority for milestone 4.
+- **Jepsen's writeups**: the model for milestone 5's fault injection.
 
 Build one milestone, try to break it, document it, commit. Then the next.

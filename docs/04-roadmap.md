@@ -1,4 +1,4 @@
-# 04 — Roadmap
+# 04: Roadmap
 
 From "a crash cannot lose your data" (today) to "a 3-node cluster survives its
 leader being killed."
@@ -22,7 +22,7 @@ M0 ─► M1 ─► M2 ─► M3 ─► M6
         └──► M4 ─► M5 ──┘
 ```
 
-Raft (M4) replicates the *log* from M0/M1, so it does not need SQL — M3 and M4
+Raft (M4) replicates the *log* from M0/M1, so it does not need SQL: M3 and M4
 can proceed in either order once the storage engine exists. Everything needs M0,
 because replicating data you can lose locally is pointless.
 

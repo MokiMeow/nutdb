@@ -1,4 +1,4 @@
-# 09 — Cluster testing
+# 09: Cluster testing
 
 NutDB tests distributed behavior at three levels:
 

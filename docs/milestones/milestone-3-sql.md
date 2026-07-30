@@ -1,4 +1,4 @@
-# Milestone 3 — SQL ✅
+# Milestone 3: SQL ✅
 
 **Goal:** execute a useful SQL subset over durable snapshot-isolated storage.
 
@@ -31,4 +31,4 @@
 
 See [the SQL design](../08-sql.md).
 
-**Next:** [Milestone 4 — Raft](milestone-4-raft.md).
+**Next:** [Milestone 4: Raft](milestone-4-raft.md).

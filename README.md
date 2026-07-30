@@ -1,7 +1,7 @@
 <h1 align="center">nutdb</h1>
 
 <p align="center">
-  <em>A distributed SQL database written from scratch in Rust — built from the
+  <em>A distributed SQL database written from scratch in Rust: built from the
   durability layer up: write-ahead logging, MVCC, a SQL engine, and Raft
   replication. No database dependencies.</em>
 </p>
@@ -50,7 +50,7 @@ single durable write.
 Most "build a database" projects start with SQL parsing. nutdb starts where a
 database earns the right to be called one: **not losing your data.** Milestone 0
 is a checksummed write-ahead log and a store that survives a crash at any point,
-including *mid-write*. Everything after — transactions, SQL, replication — is
+including *mid-write*. Everything after: transactions, SQL, replication: is
 built on that foundation.
 
 ```
@@ -61,11 +61,11 @@ set(k, v) ──▶ append to WAL ──▶ fsync ──▶ update memory ──
                   it is detected by the checksum and discarded
 ```
 
-## Storage result — durability plus bounded recovery
+## Storage result: durability plus bounded recovery
 
 ```
 $ cargo run --release -- demo
-nutdb milestone 0 — write-ahead log durability
+nutdb milestone 0: write-ahead log durability
 
 opening a fresh store at data/demo.wal
   set user:1 = ada
@@ -75,7 +75,7 @@ opening a fresh store at data/demo.wal
   delete temp
   3 keys live, log is 126 bytes
 
-process 'crashes' — reopening from the log only
+process 'crashes': reopening from the log only
   replayed 5 records (truncated: false)
   keys recovered: ["user:1", "user:2", "user:3"]
 
@@ -102,15 +102,15 @@ The suite includes manufactured failure cases, including:
 
 ## Why it is interesting (the depth on show)
 
-- **Write-ahead logging done properly** — records are `[len][crc32][payload]`,
+- **Write-ahead logging done properly**: records are `[len][crc32][payload]`,
   the CRC is what separates "the file ended" from "the file lied", and replay
   stops at the first torn record.
   ([docs/05-durability.md](docs/05-durability.md))
-- **Crash safety is tested, not claimed** — the suite *creates* torn writes and
+- **Crash safety is tested, not claimed**: the suite *creates* torn writes and
   bit-flips instead of assuming they cannot happen.
-- **MVCC and snapshot isolation** — transactions that read a consistent snapshot
+- **MVCC and snapshot isolation**: transactions that read a consistent snapshot
   without blocking writers. ([docs/06-mvcc.md](docs/06-mvcc.md))
-- **Raft consensus from scratch** — leader election, log replication, and the
+- **Raft consensus from scratch**: leader election, log replication, and the
   safety properties that make a 3-node cluster survive a leader dying.
   ([docs/07-raft.md](docs/07-raft.md))
 
@@ -126,7 +126,14 @@ cargo run -- sql "SELECT * FROM users WHERE id = 1;"
 bash scripts/cluster-demo.sh      # three processes, pause + leader failover
 ```
 
-Needs only a Rust toolchain — there are no dependencies at all.
+Needs only a Rust toolchain: there are no dependencies at all.
+
+## Requirements
+
+NutDB requires a stable Rust toolchain with Cargo. The process-level cluster
+demo additionally needs Bash and a host that permits loopback TCP listeners.
+The crate has no third-party dependencies, services, accounts, or database
+installation requirements.
 
 ## Status
 
@@ -193,6 +200,15 @@ nutdb/
 └── Cargo.toml    # zero dependencies
 ```
 
+## Documentation
+
+Start with the [overview](docs/00-overview.md) and
+[architecture](docs/02-architecture.md). The subsystem guides cover
+[durability](docs/05-durability.md), [MVCC](docs/06-mvcc.md),
+[Raft](docs/07-raft.md), [SQL](docs/08-sql.md), and
+[testing](docs/09-testing.md). Design decisions and milestone evidence are
+indexed from [docs/README.md](docs/README.md).
+
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT: see [LICENSE](LICENSE).

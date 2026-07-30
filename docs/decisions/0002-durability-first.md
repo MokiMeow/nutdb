@@ -1,4 +1,4 @@
-# ADR 0002 — Build durability before SQL
+# ADR 0002: Build durability before SQL
 
 **Status:** accepted · **Date:** 2026
 

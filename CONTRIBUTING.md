@@ -5,7 +5,7 @@ welcome.
 
 ## Before you start
 
-- Read [AGENTS.md](AGENTS.md) — the operating manual, which applies to humans
+- Read [AGENTS.md](AGENTS.md): the operating manual, which applies to humans
   too.
 - Skim [docs/00-overview.md](docs/00-overview.md), the
   [roadmap](docs/04-roadmap.md), and

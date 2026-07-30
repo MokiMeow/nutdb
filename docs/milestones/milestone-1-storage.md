@@ -1,4 +1,4 @@
-# Milestone 1 — Storage engine ✅
+# Milestone 1: Storage engine ✅
 
 **Goal:** move durable state out of an ever-growing replay log and into
 checksummed fixed-size pages indexed by a handwritten B-tree.
@@ -48,4 +48,4 @@ nodes.
       repaired tail have regression tests.
 - [x] Release build is warning-free on Linux and all earlier tests remain green.
 
-**Next:** [Milestone 2 — MVCC](milestone-2-mvcc.md).
+**Next:** [Milestone 2: MVCC](milestone-2-mvcc.md).

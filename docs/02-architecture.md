@@ -1,7 +1,7 @@
-# 02 — Architecture
+# 02: Architecture
 
 Layered so each level depends only on the level beneath it, and so the bottom
-level — durability — can never be bypassed by anything above.
+level: durability: can never be bypassed by anything above.
 
 ```
 ┌────────────────────────────────────────────────┐
@@ -52,15 +52,15 @@ Getting its format and ordering right first is why milestone 0 came first.
 
 ## Invariants
 
-1. **Write ordering** — `append → fsync → mutate memory → acknowledge`. Never
+1. **Write ordering**: `append → fsync → mutate memory → acknowledge`. Never
    reordered, never skipped for speed.
-2. **Replay stops at the first bad record** — after a torn write, later bytes
+2. **Replay stops at the first bad record**: after a torn write, later bytes
    cannot be assumed to be record boundaries.
-3. **Recovery is reported, not silent** — `Recovery { records_replayed,
+3. **Recovery is reported, not silent**: `Recovery { records_replayed,
    truncated, valid_bytes }` so callers (and tests) can assert on what happened.
-4. **Formats are explicit** — every on-disk layout is a documented byte diagram
+4. **Formats are explicit**: every on-disk layout is a documented byte diagram
    in the module that owns it.
-5. **Checkpoint publication is ordered** — sync the replacement page file,
+5. **Checkpoint publication is ordered**: sync the replacement page file,
    publish it, sync the directory entry on Unix, then and only then truncate
    the WAL it supersedes.
 
@@ -73,7 +73,7 @@ database that loses availability to a single bad byte.
 
 ## Concurrency (today and later)
 
-Milestones 0 and 1 are single-threaded and synchronous — the simplest design
+Milestones 0 and 1 are single-threaded and synchronous: the simplest design
 that can be proven correct. Concurrency arrives with MVCC (M2), where readers take snapshots
 and never block writers, and again with Raft (M4), where each node runs an
 election timer, a replication loop, and an apply loop.

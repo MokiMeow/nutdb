@@ -1,4 +1,4 @@
-# ADR 0003 — State guarantees precisely, including the limits
+# ADR 0003: State guarantees precisely, including the limits
 
 **Status:** accepted · **Date:** 2026
 
@@ -27,7 +27,7 @@ Concretely:
 ## Rationale
 
 - A precise limitation is more convincing than a vague strength. An engineer
-  reading "snapshot isolation, which permits write skew — here is the example"
+  reading "snapshot isolation, which permits write skew: here is the example"
   learns the author understands isolation levels; "fully ACID" tells them
   nothing, or worse.
 - It keeps the project honest internally: writing down the limit forces the
