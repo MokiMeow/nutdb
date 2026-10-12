@@ -37,7 +37,7 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/store.rs` | the store: log → fsync → apply; `Recovery` reporting |
 | `src/page.rs` | checksummed 4 KiB slotted-page format |
 | `src/pager.rs` | fixed-page I/O and dirty LRU eviction |
-| `src/btree.rs` | handwritten B-tree, range scans, page snapshots |
+| `src/btree.rs` | handwritten B-tree, bounded half-open range scans, page snapshots |
 | `src/txn.rs` | durable transaction log, snapshots, commits, conflicts |
 | `src/version.rs` | version visibility and modification timestamps |
 | `src/gc.rs` | watermark/reclamation reporting |
@@ -49,6 +49,18 @@ Getting its format and ordering right first is why milestone 0 came first.
 | `src/linearizability.rs` | real-time register-history verifier |
 | `src/main.rs` | demos, standalone CLI, server, and cluster client |
 | `tests/crash_recovery.rs` | tests that manufacture crashes and corruption |
+
+## Range-scan efficiency
+
+`BTreeIndex::range(start, end)` uses B-tree separator keys to prune child
+subtrees outside the requested half-open interval. Narrow queries avoid building
+and filtering the entire index: only matching key/value pairs are cloned into
+the response. Empty or reversed bounds return an empty result. The on-disk
+page layout and WAL ordering do not change.
+
+The benchmark prints narrow-range scans per second across a 20,000-key in-memory
+B-tree, with 12 results per scan, alongside the durability benchmarks. Build
+the benchmark in release mode with `cargo run --release -- bench`.
 
 ## Invariants
 
