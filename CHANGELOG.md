@@ -7,6 +7,9 @@ to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Changed
+- Pruned B-tree range scans to visit only overlapping subtrees and clone only
+  matching rows; added split-boundary regression coverage and a repeatable
+  narrow-range benchmark.
 - Expanded the README with exact host requirements and complete documentation
   navigation, and standardized first-party Markdown punctuation.
 

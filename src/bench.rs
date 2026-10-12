@@ -16,7 +16,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::client::ClusterClient;
 use crate::server::Server;
-use crate::{MvccStore, Store};
+use crate::{BTreeIndex, MvccStore, Store};
 
 const WRITE_COUNT: usize = 100;
 const REPLICATED_WRITE_COUNT: usize = 30;
@@ -24,6 +24,9 @@ const READ_COUNT: usize = 100_000;
 const WRITER_COUNT: usize = 100;
 const RECOVERY_RECORDS: usize = 10_000;
 const SAMPLES: usize = 3;
+const RANGE_KEYS: usize = 20_000;
+const RANGE_SCANS: usize = 2_000;
+const RANGE_WIDTH: usize = 12;
 
 pub fn run() -> io::Result<()> {
     let dir = BenchDir::new()?;
@@ -31,6 +34,7 @@ pub fn run() -> io::Result<()> {
     println!(
         "conditions: median of {SAMPLES} samples; {WRITE_COUNT} single writes, \
          {REPLICATED_WRITE_COUNT} replicated writes, {READ_COUNT} MVCC reads, \
+         {RANGE_SCANS} narrow B-tree range scans over {RANGE_KEYS} keys, \
          {RECOVERY_RECORDS} recovery records per sample"
     );
 
@@ -43,6 +47,7 @@ pub fn run() -> io::Result<()> {
             ungrouped,
             grouped,
             mvcc_reads: mvcc_read_throughput(&sample_dir)?,
+            btree_ranges: btree_range_throughput()?,
             replicated: replicated_latency(&sample_dir)?,
             recovery: recovery_time(&sample_dir)?,
         });
@@ -65,6 +70,12 @@ pub fn run() -> io::Result<()> {
             .map(|measurement| measurement.mvcc_reads)
             .collect(),
     );
+    let btree_ranges = median_f64(
+        measurements
+            .iter()
+            .map(|measurement| measurement.btree_ranges)
+            .collect(),
+    );
     let replicated = median_duration(
         measurements
             .iter()
@@ -83,6 +94,9 @@ pub fn run() -> io::Result<()> {
     println!("| single writes, fsync each | {:.0} ops/s |", rate(WRITE_COUNT, ungrouped));
     println!("| group commit, one fsync | {:.0} ops/s |", rate(WRITE_COUNT, grouped));
     println!("| MVCC snapshot reads with writer | {mvcc_reads:.0} ops/s |");
+    println!(
+        "| B-tree {RANGE_WIDTH}-row ranges over {RANGE_KEYS} keys | {btree_ranges:.0} scans/s |"
+    );
     println!(
         "| single write latency | {:.3} ms/op |",
         millis_per(ungrouped, WRITE_COUNT)
@@ -113,6 +127,36 @@ fn write_throughput(root: &std::path::Path) -> io::Result<(Duration, Duration)> 
     )?;
     let grouped = started.elapsed();
     Ok((ungrouped, grouped))
+}
+
+fn btree_range_throughput() -> io::Result<f64> {
+    let mut tree = BTreeIndex::new();
+    for index in 0..RANGE_KEYS {
+        tree.insert(format!("range-{index:05}"), "payload".to_owned());
+    }
+
+    // Build query strings outside the timed section: only traversal, copying
+    // the matched rows, and their result validation contribute to the rate.
+    let queries: Vec<(String, String)> = (0..RANGE_SCANS)
+        .map(|index| {
+            let start = (index * 11) % (RANGE_KEYS - RANGE_WIDTH);
+            (
+                format!("range-{start:05}"),
+                format!("range-{:05}", start + RANGE_WIDTH),
+            )
+        })
+        .collect();
+
+    let started = Instant::now();
+    for (start, end) in &queries {
+        if tree.range(start, end).len() != RANGE_WIDTH {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "benchmark: unexpected narrow range count",
+            ));
+        }
+    }
+    Ok(rate(RANGE_SCANS, started.elapsed()))
 }
 
 fn mvcc_read_throughput(root: &std::path::Path) -> io::Result<f64> {
@@ -264,6 +308,7 @@ struct Measurement {
     ungrouped: Duration,
     grouped: Duration,
     mvcc_reads: f64,
+    btree_ranges: f64,
     replicated: Duration,
     recovery: Duration,
 }

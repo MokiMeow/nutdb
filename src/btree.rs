@@ -189,11 +189,41 @@ impl BTreeIndex {
         true
     }
 
+    /// Return the half-open range [start, end) without copying unrelated rows.
+    ///
+    /// Descend only into B-tree child intervals that can intersect the bounds,
+    /// rather than materializing every key/value pair before filtering.
     pub fn range(&self, start: &str, end: &str) -> Vec<(String, String)> {
-        self.entries()
-            .into_iter()
-            .filter(|(key, _)| key.as_str() >= start && key.as_str() < end)
-            .collect()
+        if start >= end {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        self.collect_range(self.root, start, end, &mut out);
+        out
+    }
+
+    fn collect_range(
+        &self,
+        node_id: usize,
+        start: &str,
+        end: &str,
+        out: &mut Vec<(String, String)>,
+    ) {
+        let node = &self.nodes[node_id];
+        let first = node.keys.partition_point(|key| key.as_str() < start);
+        let last = node.keys.partition_point(|key| key.as_str() < end);
+
+        for index in first..last {
+            if !node.leaf() {
+                self.collect_range(node.children[index], start, end, out);
+            }
+            out.push((node.keys[index].clone(), node.values[index].clone()));
+        }
+        // A range may lie entirely between two keys in an internal node:
+        // even when no separator key matched, that one child can hold rows.
+        if !node.leaf() {
+            self.collect_range(node.children[last], start, end, out);
+        }
     }
 
     pub fn entries(&self) -> Vec<(String, String)> {
@@ -508,5 +538,52 @@ mod tests {
         let reopened = BTreeIndex::load(&path).unwrap();
         assert_eq!(reopened.entries(), tree.entries());
         let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn range_prunes_without_changing_results() {
+        let mut tree = BTreeIndex::new();
+        // Reverse insertion forces many splits, including internal separators.
+        for index in (0..2048).rev() {
+            tree.insert(format!("key-{index:04}"), format!("value-{index}"));
+        }
+        for index in (0..2048).step_by(31) {
+            tree.insert(format!("key-{index:04}"), format!("updated-{index}"));
+        }
+        assert!(tree.delete("key-0300"));
+        let all = tree.entries();
+
+        for (start, end) in [
+            ("", ""),
+            ("", "key-0000"),
+            ("key-0000", "key-0001"),
+            ("key-0007", "key-0031"),
+            ("key-0064", "key-1024"),
+            ("key-0300", "key-0302"),
+            ("key-2047", "key-2048"),
+            ("key-2049", "key-9999"),
+            ("key-0050", "key-0050"),
+            ("key-1000", "key-0999"),
+            ("", "zzz"),
+        ] {
+            let expected: Vec<_> = all
+                .iter()
+                .filter(|(key, _)| key.as_str() >= start && key.as_str() < end)
+                .cloned()
+                .collect();
+            assert_eq!(tree.range(start, end), expected, "{start:?}..{end:?}");
+        }
+
+        // Probe many small ranges to cross leaf and internal-node boundaries.
+        for index in (0..2050).step_by(13) {
+            let start = format!("key-{index:04}");
+            let end = format!("key-{:04}", index + 7);
+            let expected: Vec<_> = all
+                .iter()
+                .filter(|(key, _)| key >= &start && key < &end)
+                .cloned()
+                .collect();
+            assert_eq!(tree.range(&start, &end), expected, "{start}..{end}");
+        }
     }
 }
